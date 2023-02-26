@@ -3,6 +3,7 @@ from datetime import datetime
 from di4.settings.config import *
 
 NOW_DATE = datetime.utcnow().date()
+DB_NAME = f'settings/{DB_NAME}'
 
 
 def query_execution(query):
@@ -28,13 +29,14 @@ def insert_into_goods(name='', amount=0):
     return query_execution(insert_query)
 
 
-def insert_into_purchase(goods_id: int, buy_price: int | float = 0, date: datetime = NOW_DATE):
+def insert_into_purchase(goods_id: int, buy_price: int | float = 0, date: datetime = NOW_DATE, status = 1):
     insert_query = f'''
-            INSERT INTO {TABLE_PURCHASE} (goods_id, buy_price, date)
+            INSERT INTO {TABLE_PURCHASE} (goods_id, buy_price, date, status)
             VALUES (
             {goods_id},
             {buy_price},
-             '{date}'); '''
+             '{date}',
+             {status}); '''
     return query_execution(insert_query)
 
 
@@ -48,88 +50,27 @@ def insert_into_orders(purchase_id: int, sell_price: int | float = 0, date: date
     return query_execution(insert_query)
 
 
-# def select_all_from_refugees():
-#     select_all_query = f'''
-#     SELECT * FROM {table};
-# '''
-#     with sq.connect(DATABASE) as connection:
-#         try:
-#             cursor = connection.cursor()
-#             cursor.execute(select_all_query)
-#         except Exception as ex:
-#             print(f'[ERROR] problem: {ex}')
-#
-#     return cursor.fetchall()
-#
-#
-# def update_city_refugees(id, city):
-#     update_query = f'''
-#     UPDATE {table}
-#     SET city = '{city}'
-#     WHERE id = {id};
-# '''
-#     with sq.connect(DATABASE) as connection:
-#         try:
-#             cursor = connection.cursor()
-#             cursor.execute(update_query)
-#         except Exception as ex:
-#             print(f'[ERROR] problem: {ex}')
-#
-#
-# def update_name_refugees(id, name):
-#     update_query = f'''
-#     UPDATE {table}
-#     SET name = '{name}'
-#     WHERE id = {id};
-# '''
-#     with sq.connect(DATABASE) as connection:
-#         try:
-#             cursor = connection.cursor()
-#             cursor.execute(update_query)
-#         except Exception as ex:
-#             print(f'[ERROR] problem: {ex}')
-#
-#
-# def update_description_refugees(id, description):
-#     update_query = f'''
-#     UPDATE {table}
-#     SET name = '{description}'
-#     WHERE id = {id};
-# '''
-#     with sq.connect(DATABASE) as connection:
-#         try:
-#             cursor = connection.cursor()
-#             cursor.execute(update_query)
-#         except Exception as ex:
-#             print(f'[ERROR] problem: {ex}')
-#
-#
-# def update_contact_id_refugees(id, contact_id):
-#     update_query = f'''
-#     UPDATE {table}
-#     SET name = '{contact_id}'
-#     WHERE id = {id};
-# '''
-#     with sq.connect(DATABASE) as connection:
-#         try:
-#             cursor = connection.cursor()
-#             cursor.execute(update_query)
-#         except Exception as ex:
-#             print(f'[ERROR] problem: {ex}')
+def update_goods_amount(id:int, amount:int):
+    update_query = f'''
+        UPDATE {TABLE_GOODS}
+        SET amount = {amount}
+        WHERE id = {id};'''
+    return query_execution(update_query)
 
 
-def delete_row(row_id):
+def update_purchase_status(id:int, stat=0):
+    update_query = f'''
+        UPDATE {TABLE_PURCHASE}
+        SET status = {stat}
+        WHERE id = {id};'''
+    return query_execution(update_query)
+
+
+def delete_row(row_id, table):
     del_query = f'''
-    DELETE FROM {TABLE_GOODS}
-    WHERE id = '{row_id}';
-'''
-    print(f'dbCOnnecor {row_id}')
-    with sq.connect(DB_NAME) as connection:
-        try:
-            cursor = connection.cursor()
-            cursor.execute(del_query)
-        except Exception as ex:
-            print(f'[ERROR] problem: {ex}')
+        DELETE FROM {table}
+        WHERE id = '{row_id}';'''
+    return query_execution(del_query)
 
 
 create_table_goods = '''
@@ -156,24 +97,9 @@ create_table_order = '''
     FOREIGN KEY(purchase_id) REFERENCES purchase(id))'''
 
 if __name__ == '__main__':
-    goods_list = [('bamper_black', 0),
-                  ('bamber_red',2),
-                  ('spoiler_carbon', 1),
-                  ('spoiler_white', 0),
-                  ('fara_BNW', 3)]
+    # update_goods_amount(6, 1)
+    # update_purchase_status(1)
+    # update_purchase_status(3)
+    # update_purchase_status(5)
 
-    purchase_list = [(2,110),
-                     (2,113.5),
-                     (3,96),
-                     (4,125),
-                     (5,87.45),
-                     (5,89.12),
-                     (5,91)]
-
-    orders_list = [(1,140),
-                   (3,115.1),
-                   (5,123.5)]
-
-    with sq.connect(DB_NAME) as con:
-        cursor = con.cursor()
-        cursor.executemany(f"INSERT INTO orders VALUES(NULL, ?, ?, '{NOW_DATE}')", orders_list)
+    pass
