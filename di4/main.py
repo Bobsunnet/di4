@@ -1,18 +1,30 @@
+import datetime
 import re
 import sys
 
-from PyQt5 import QtWidgets, QtCore
-from PyQt5.QtCore import Qt, QModelIndex
+from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt5.QtCore import Qt
 
 import dbConnector
 from di4.settings import sql_pyqt
 from di4.static import stylesheet
+from di4.settings import MyExceptions
 
 HEADERS_GOODS = ['Name', 'amount']
 HEADERS_ORDERS = ['Name', 'sell_price', 'date']
 HEADERS_PURCHASE = ['Name', 'buy_price', 'date']
 HEADERS_STAT = ['Name', 'buy_price', 'sell_price', 'buy_date', 'sell_date']
 
+VALIDATOR_DIGITS = QtGui.QRegExpValidator(QtCore.QRegExp(r'[0-9.]+'))
+
+query_all_orders = '''SELECT orders.id, goods.name, sell_price, orders.date 
+                FROM orders 
+                JOIN purchase ON purchase.id = orders.purchase_id
+                JOIN goods ON goods.id = purchase.goods_id
+                ORDER BY orders.id DESC;'''
+
+
+TABLE_NAMES_LIST = [dbConnector.TABLE_GOODS, dbConnector.TABLE_PURCHASE, dbConnector.TABLE_ORDERS]
 
 class TextWidget(QtWidgets.QTextEdit):
     def __init__(self):
@@ -25,17 +37,19 @@ class TextWidget(QtWidgets.QTextEdit):
     def get_linked_cell(self):
         return self.linked_cell
 
+
 class DataOperator:
     def __init__(self):
-        self.cell_coords = None
-        self.model_list = []
-        self.active_table = None
+        self.cell_info = {'index': None, 'model': None}
+        self.model_list:list = []
+        self.active_table:QtWidgets.QTableView = None
 
-    def get_cell_coords(self):
-        return self.cell_coords
+    def get_cell_info(self, key):
+        return self.cell_info.get(key)
 
-    def set_sell_coords(self, coords: tuple):
-        self.cell_coords = coords
+    def set_cell_info(self, index, model):
+        self.cell_info['index'] = index
+        self.cell_info['model'] = model
 
     def get_active_table(self):
         return self.active_table
@@ -46,13 +60,23 @@ class DataOperator:
 
 class TableWindow(QtWidgets.QMainWindow):
     def __init__(self):
-        super(TableWindow, self).__init__()
+        super().__init__()
 
         self.setup_ui()
         self.data_cash = DataOperator()
         self.model_create(dbConnector.TABLE_GOODS, HEADERS_GOODS, 'model_goods')
         self.model_create(dbConnector.TABLE_PURCHASE, HEADERS_PURCHASE, 'model_purchase')
-        self.model_create(dbConnector.TABLE_ORDERS, HEADERS_ORDERS, 'model_orders')
+        # self.model_create(dbConnector.TABLE_ORDERS, HEADERS_ORDERS, 'model_orders')
+
+        # ************************* TEST CODE ****************************
+        self.model_orders = sql_pyqt.QSqlQueryModel()
+        query = sql_pyqt.QSqlQuery(query_all_orders, db=sql_pyqt.db)
+        self.model_orders.setQuery(query)
+        # self.model_orders.setEditStrategy(sql_pyqt.QSqlTableModel.EditStrategy.OnFieldChange)
+        for i, name in enumerate(HEADERS_ORDERS):
+            self.model_orders.setHeaderData(i + 1, Qt.Orientation.Horizontal, name)
+
+        # ************************** END TEST CODE *******************************
 
         self.create_table_view(getattr(self,'model_goods'), 'table_view_goods')
         self.create_table_view(getattr(self,'model_purchase'), 'table_view_purchase')
@@ -65,8 +89,8 @@ class TableWindow(QtWidgets.QMainWindow):
 
         self.data_cash.active_table = self.tab_widget.currentWidget()
 
-    def model_create(self, table, headers, model_name):
-        model = sql_pyqt.QSqlTableModel(db=sql_pyqt.db)
+    def model_create(self, table:str, headers:list, model_name:str):
+        model = sql_pyqt.QSqlRelationalTableModel(db=sql_pyqt.db)
         model.setTable(table)
         model.setEditStrategy(sql_pyqt.QSqlTableModel.EditStrategy.OnFieldChange)
         model.sort(0, Qt.SortOrder.DescendingOrder)
@@ -95,6 +119,9 @@ class TableWindow(QtWidgets.QMainWindow):
 
         # при нажатии на ячейку срабатывает ивентлуп
         self.table_view_goods.selectionModel().currentChanged.connect(self.cell_highlighted)
+        self.table_view_purchase.selectionModel().currentChanged.connect(self.cell_highlighted)
+        self.table_view_orders.selectionModel().currentChanged.connect(self.cell_highlighted)
+
 
     def widgets_setup(self):
         # ____________________________________ TAB WIDGET SETUP _________________________
@@ -110,55 +137,75 @@ class TableWindow(QtWidgets.QMainWindow):
         self.label_finder = QtWidgets.QLabel()
         self.label_finder.setMaximumWidth(90)
         self.label_finder.setStyleSheet(stylesheet.label_finder)
-        self.label_finder.setText('Поиск')
+        self.label_finder.setText('Пошук')
 
         self.lnedit_finder = QtWidgets.QLineEdit()
         self.lnedit_finder.setStyleSheet(stylesheet.line_edit)
-        self.lnedit_finder.setPlaceholderText('Поиск')
-        self.lnedit_finder.textChanged.connect(self.btn_finder_clicked)
+        self.lnedit_finder.setPlaceholderText('Пошук')
+        self.lnedit_finder.textChanged.connect(self.action_filtered_search)
         self.lnedit_finder.setMaximumWidth(500)
 
-        self.btn_finder = QtWidgets.QPushButton()
-        self.btn_finder.setStyleSheet(stylesheet.button_general)
-        self.btn_finder.setText('Додати Закупку')
-        self.btn_finder.clicked.connect(self.add_purchase)
+        self.btn_new_goods = QtWidgets.QPushButton()
+        # self.btn_new_goods.setStyleSheet(stylesheet.button_general)
+        self.btn_new_goods.setText('Додати Товар')
+        self.btn_new_goods.clicked.connect(self.btn_new_goods_clicked)
 
-        self.btn_new_row = QtWidgets.QPushButton()
-        self.btn_new_row.setStyleSheet(stylesheet.button_general)
-        self.btn_new_row.setText('Додати Товар')
-        self.btn_new_row.clicked.connect(self.btn_new_row_clicked)
+        self.btn_new_purchase = QtWidgets.QPushButton()
+        self.btn_new_purchase.setStyleSheet(stylesheet.button_general)
+        self.btn_new_purchase.setText('Додати Закупку')
+        self.btn_new_purchase.clicked.connect(self.add_purchase)
 
-        self.btn_save_all = QtWidgets.QPushButton()
-        self.btn_save_all.setStyleSheet(stylesheet.button_general)
-        self.btn_save_all.setText('2')
-        self.btn_save_all.clicked.connect(self.btn_save_clicked)
-
-        self.btn_show_all = QtWidgets.QPushButton()
-        self.btn_show_all.setStyleSheet(stylesheet.button_general)
-        self.btn_show_all.setText('3')
-        self.btn_show_all.clicked.connect(self.btn_show_all_clicked)
+        self.btn_new_order = QtWidgets.QPushButton()
+        self.btn_new_order.setStyleSheet(stylesheet.button_general)
+        self.btn_new_order.setText('Додати продажу')
+        self.btn_new_order.clicked.connect(self.add_order)
 
         self.btn_delete_row = QtWidgets.QPushButton()
         self.btn_delete_row.setStyleSheet(stylesheet.button_delete)
         self.btn_delete_row.setText('Видалити')
         self.btn_delete_row.clicked.connect(self.btn_delete_row_clicked)
 
+
+    # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ EDITING LAYER ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.lnedit_sell_price = QtWidgets.QLineEdit()
+        self.lnedit_sell_price.setValidator(VALIDATOR_DIGITS)
+        self.lnedit_sell_price.setPlaceholderText('USD')
+
+        self.btn_set_sell_price = QtWidgets.QPushButton()
+        self.btn_set_sell_price.setText('Змінити ціну продажу')
+        self.btn_set_sell_price.setDisabled(True)
+        self.btn_set_sell_price.clicked.connect(self.btn_update_sell_price_clicked)
+
+        self.lnedit_date_order = QtWidgets.QLineEdit()
+        self.lnedit_date_order.setPlaceholderText('yyyy-mm-dd')
+
+        self.btn_set_sell_date = QtWidgets.QPushButton()
+        self.btn_set_sell_date.setText('Змінити дату продажу')
+        self.btn_set_sell_date.setDisabled(True)
+        self.btn_set_sell_date.clicked.connect(self.btn_update_sell_date_clicked)
+
+
+
+
         # __________________________________TEXT_LAYER_________________________
         self.text_widget = TextWidget()
+        self.text_widget.setDisabled(True)
         # self.text_widget.setMaximumHeight(90)
-        self.text_widget.cursorPositionChanged.connect(self.change_cell_text)
-        self.text_widget.setAcceptRichText(False)
+        # self.text_widget.cursorPositionChanged.connect(self.change_cell_text)
         self.text_widget.setStyleSheet(stylesheet.text_edit)
 
         self.label_info = QtWidgets.QLabel()
-        self.label_info.setText('К-ть рядків: \n\n\nДата редагування: \n')
+        self.label_info.setText('id=???')
         self.label_info.setStyleSheet(stylesheet.label_info)
 
         self.lnedit_id = QtWidgets.QLineEdit()
         self.lnedit_id.setStyleSheet(stylesheet.line_edit)
-        self.lnedit_id.setPlaceholderText('date')
-        self.lnedit_id.returnPressed.connect(self.change_date_value)
+        self.lnedit_id.setPlaceholderText('---')
         self.lnedit_id.setMaximumWidth(120)
+
+        # ____________________________________ MODELS _________________________________
+        self.model_purchase.setRelation(1, sql_pyqt.QSqlRelation("goods", 'id', 'name'))
+
 
     def layout_setup(self):
         # ________________________________BUTTONS_LAYOUT___________________________________
@@ -168,26 +215,27 @@ class TableWindow(QtWidgets.QMainWindow):
 
         buttons_layout.addWidget(self.label_finder)
         buttons_layout.addWidget(self.lnedit_finder)
-        buttons_layout.addWidget(self.btn_finder)
-        buttons_layout.addWidget(self.btn_new_row)
-        buttons_layout.addWidget(self.btn_save_all)
-        buttons_layout.addWidget(self.btn_show_all)
+        buttons_layout.addWidget(self.btn_new_goods)
+        buttons_layout.addWidget(self.btn_new_purchase)
+        buttons_layout.addWidget(self.btn_new_order)
         buttons_layout.addWidget(self.btn_delete_row)
 
         # ________________________________TEXTWIDGET_LAYOUT___________________________________
-        text_edit_layout = QtWidgets.QHBoxLayout()
-        text_edit_layout.setContentsMargins(0, 10, 300, 10)
+        properties_layout = QtWidgets.QHBoxLayout()
 
         label_date_layout = QtWidgets.QVBoxLayout()
         label_date_layout.addWidget(self.lnedit_id)
         label_date_layout.addWidget(self.label_info)
 
-        text_edit_layout.addLayout(label_date_layout)
-        text_edit_layout.addWidget(self.text_widget)
+        properties_layout.addLayout(label_date_layout)
+        properties_layout.addWidget(self.lnedit_sell_price)
+        properties_layout.addWidget(self.btn_set_sell_price)
+        properties_layout.addWidget(self.lnedit_date_order)
+        properties_layout.addWidget(self.btn_set_sell_date)
 
         # ________________________________MAIN_LAYOUT___________________________________________
         top_layout_widget = QtWidgets.QWidget()
-        top_layout_widget.setLayout(text_edit_layout)
+        top_layout_widget.setLayout(properties_layout)
         main_layout = QtWidgets.QVBoxLayout()
 
         splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
@@ -206,97 +254,158 @@ class TableWindow(QtWidgets.QMainWindow):
 
 # _____________________________________ SIGNALS/ACTIONS ___________________________________________
     def tab_changed(self, i):
+        #TODO нужно передать функцию. Отрефакторить или вообще поменять подход
         self.data_cash.set_active_table(self.tab_widget.widget(i))
         self.refresh_table(i)
+        lock_list = [self.btn_set_sell_date, self.btn_set_sell_price]
+        self.lock_widgets(lock_list)
+        if i == 2:
+            self.unlock_widgets(lock_list)
+
 
     def cell_highlighted(self, current):
-        # setting active cell coords
-        #в будущем попробовать работаь с обьектом ячейки, а не с координатами
         row, col = current.row(), current.column()
         self.text_widget.link_cell((row, col))
-        self.data_cash.set_sell_coords((row, col))
+        self.data_cash.set_cell_info(current, self.tab_widget.currentWidget().model())
 
-        print(self.data_cash.active_table.model().index(row,col).data())
         # меняем текст в виджете
-        self.change_text_widget(row, col)
+        self.change_text_widget(current)
         self.draw_label_info(row)
 
-    # __________________________________ LOGIC _______________________________________
-    def add_purchase(self):
-        try:
-            row = self.get_linked_cell()[0]
-            goods_id = self.model_goods.data(self.model_goods.index(row, 0))
-            dbConnector.insert_into_purchase(goods_id)
-            self.tab_widget.setCurrentIndex(1)
-            current_amount = self.model_goods.data(self.model_goods.index(row, 2))
-            self.model_goods.setData(self.model_goods.index(row, 2), current_amount + 1)
-        except Exception as ex:
-            self.draw_error_message('Спочатку виберіть товар з таблиці "goods"', exception=ex)
+    def btn_show_all_clicked(self):
+        self.lnedit_finder.setText('')
 
+    def btn_delete_row_clicked(self):
+        row_id = self.label_info.text().split('=')[1].strip()
+        current_table_index = self.tab_widget.currentIndex()
+        try:
+            if not row_id.isdigit():
+                raise MyExceptions.GeneralException('Оберіть рядок для видалення')
+            self.delete_row(row_id,current_table_index)
+
+        except Exception as ex:
+            self.draw_error_message('Шось не то =(', exception=ex)
+
+
+    def btn_update_sell_price_clicked(self):
+        price_str = self.lnedit_sell_price.text()
+        if price_str:
+            price = float(price_str)
+            self.update_sell_price(price)
+
+    def btn_update_sell_date_clicked(self):
+        self.update_sell_date()
+
+    # __________________________________ LOGIC _______________________________________
+    def lock_widgets(self, widgets:list):
+        for widget in widgets:
+            widget.setDisabled(True)
+
+    def unlock_widgets(self, widgets:list):
+        for widget in widgets:
+            widget.setDisabled(False)
+
+    def delete_row(self, row_id, table_index):
+        dbConnector.delete_row(row_id, TABLE_NAMES_LIST[table_index])
+        self.refresh_table(table_index)
 
 
     def refresh_table(self, i):
-        if i <= 2:
-            self.data_cash.get_active_table().model().select()
+        #todo сделать перегрузку функции
+        if i <= 1:
+            self.tab_widget.currentWidget().model().select()
+        elif i == 2:
+            query = sql_pyqt.QSqlQuery(query_all_orders, db=sql_pyqt.db)
+            self.model_orders.setQuery(query)
 
+    def add_purchase(self):
+        try:
+            row = self.get_active_cell_index().row()
+            goods_id = self.model_goods.index(row, 0).data()
+            print(goods_id)
+            if self.tab_widget.currentIndex() != 0:
+                raise MyExceptions.GeneralException('Таблиця "goods" має бути активною')
+            dbConnector.insert_into_purchase(goods_id)
+            current_amount = self.model_goods.data(self.model_goods.index(row, 2))
+            self.model_goods.setData(self.model_goods.index(row, 2), current_amount + 1)
+            self.tab_widget.setCurrentIndex(1)
+        except Exception as ex:
+            self.draw_error_message('Спочатку виберіть товар з таблиці "goods"', exception=ex)
 
     def add_order(self):
-        print('Добавление заказа')
+        try:
+            row = self.get_active_cell_index().row()
+            purchase_id = self.model_purchase.index(row,0).data()
+            purchase_status = self.model_purchase.index(row,4).data()
+            print(purchase_id, purchase_status)
+            if self.tab_widget.currentIndex() != 1:
+                raise MyExceptions.GeneralException('Таблиця "purchase" має бути активною')
+            if purchase_status == 0:
+                raise MyExceptions.GeneralException('Цей товар вже продано!')
+            dbConnector.insert_into_orders(purchase_id)
+            self.model_purchase.setData(self.model_purchase.index(row,4), 0)
+            self.tab_widget.setCurrentIndex(2)
+        except Exception as ex:
+            self.draw_error_message('Спочатку виберіть товар з таблиці "purchase"', exception=ex)
+
+
+    def update_sell_date(self):
+        date = self.lnedit_date_order.text()
+        try:
+            order_id = int(self.label_info.text().split('=')[1].strip())
+            if self.tab_widget.currentIndex() != 2:
+                raise MyExceptions.GeneralException('Таблиця "orders" має бути активною')
+            print(date)
+            dbConnector.update_order_date(order_id, date)
+            self.refresh_table(2)
+        except Exception as ex:
+            self.draw_error_message('Спочатку виберіть товар з таблиці "orders"', exception=ex)
+
+    def update_sell_price(self, price):
+        try:
+            order_id = int(self.label_info.text().split('=')[1].strip())
+            if self.tab_widget.currentIndex() != 2:
+                raise MyExceptions.GeneralException('Таблиця "orders" має бути активною')
+            dbConnector.update_order_price(order_id,price)
+            self.refresh_table(2)
+        except Exception as ex:
+            self.draw_error_message('Спочатку виберіть товар з таблиці "orders"', exception=ex)
 
     def get_stats(self):
         print('Таблица статистики')
 
-
     def draw_label_info(self, row):
-        model = self.data_cash.active_table.model()
-        row_id = model.index(row, 0).data()
-        # self.lnedit_id.setText(str(row_id))
-        self.label_info.setText(f'К-ть рядків: \n{model.rowCount()}\n\nID рядку: \n{row_id}')
+        model = self.tab_widget.currentWidget().model()
+        self.label_info.setText(f'obj_id = {model.index(row, 0).data()}')
 
     def change_date_edit(self):
         pass
 
-    def change_text_widget(self, row, col):
+    def change_text_widget(self,cell_index):
         #todo переделать под задачи
-        model = self.data_cash.active_table.model()
-        text = model.index(row, col).data()
+        model = self.tab_widget.currentWidget().model()
+        text = model.data(cell_index)
         self.text_widget.setText(str(text))
 
-    def get_linked_cell(self):
-        return self.text_widget.get_linked_cell()
+    def get_active_cell_index(self):
+        return self.data_cash.get_cell_info('index')
 
-    def change_cell_text(self):
-        text = self.text_widget.toPlainText()
-        linked_cell = self.get_linked_cell()
-        if linked_cell:
-            row, col = linked_cell
-            self.model_goods.setData(self.model_goods.index(row, col), text)
-
-    def change_date_value(self):
-        date = self.lnedit_id.text()
-        linked_cell = self.get_linked_cell()
-        if linked_cell:
-            row = linked_cell[0]
-            self.model_goods.setData(self.model_goods.index(row, 5), date)
-            self.draw_label_info(row)
+    def get_active_cell_model(self):
+        return self.data_cash.get_cell_info('model')
 
     def filter_model(self, s):
         self.model_goods.setFilter(s)
 
-    def btn_finder_clicked(self):
+    def action_filtered_search(self):
         text = self.lnedit_finder.text()
         text_safe = re.sub(r'\"+', '', text)  #substitute \'-symbol
         filtered_string = 'name LIKE "%{}%"'.format(text_safe)
-        self.filter_model(filtered_string)
+        self.model_goods.setFilter(filtered_string)
 
-    def btn_new_row_clicked(self):
-        operation_res = dbConnector.insert_into_goods()
-        if operation_res[0] == 'Success':
-            self.btn_show_all_clicked()
-        elif operation_res[0] == 'integrity_error':
-            self.draw_new_line_error_message(operation_res[1])
-        elif operation_res[0] is False:
-            self.draw_general_error_message(operation_res[1])
+    def btn_new_goods_clicked(self):
+        dbConnector.insert_into_goods()
+        self.refresh_table(0)
+        self.tab_widget.setCurrentIndex(0)
 
     def draw_new_line_error_message(self, exception_message):
         error_msg = QtWidgets.QMessageBox()
@@ -323,21 +432,6 @@ class TableWindow(QtWidgets.QMainWindow):
 
         msg.exec_()
 
-    def btn_show_all_clicked(self):
-        self.lnedit_finder.setText('')
-        self.btn_finder_clicked()
-
-    def btn_delete_row_clicked(self):
-        indexes = self.table_view_goods.selectionModel().selectedRows()
-        row_id = None
-        for index in sorted(indexes):
-            row_id = self.model_goods.data(self.model_goods.index(index.row(), 0))
-
-        self.delete_row(row_id)
-
-    def delete_row(self, row_id):
-        dbConnector.delete_row(row_id, dbConnector.TABLE_GOODS)
-        self.btn_show_all_clicked()
 
     def btn_save_clicked(self):
         print('Кнопка СОхранения')

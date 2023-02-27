@@ -65,6 +65,19 @@ def update_purchase_status(id:int, stat=0):
         WHERE id = {id};'''
     return query_execution(update_query)
 
+def update_order_price(id:int, price:int | float):
+    update_query = f'''
+        UPDATE {TABLE_ORDERS}
+        SET sell_price = {price}
+        WHERE id = {id};'''
+    return query_execution(update_query)
+
+def update_order_date(id:int, date: str):
+    update_query = f'''
+        UPDATE {TABLE_ORDERS}
+        SET date = '{date}'
+        WHERE id = {id};'''
+    return query_execution(update_query)
 
 def delete_row(row_id, table):
     del_query = f'''

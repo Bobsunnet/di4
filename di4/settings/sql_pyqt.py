@@ -1,4 +1,4 @@
-from PyQt5.QtSql import QSqlDatabase, QSqlTableModel
+from PyQt5.QtSql import QSqlDatabase, QSqlTableModel, QSqlRelationalTableModel, QSqlRelation, QSqlQueryModel, QSqlQuery
 from di4.settings.config import *
 import os
 
