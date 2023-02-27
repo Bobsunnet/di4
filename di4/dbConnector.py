@@ -20,6 +20,20 @@ def query_execution(query):
             return False, ex
 
 
+def select_execution(query):
+    with sq.connect(DB_NAME) as connection:
+        try:
+            cursor = connection.cursor()
+            cursor.execute(query)
+            return cursor.fetchall()
+        except sq.IntegrityError as integrity_error:
+            print(f'[ERROR] database problem: {integrity_error}')
+            return 'integrity_error', integrity_error
+        except Exception as ex:
+            print(f'[ERROR] database problem: {ex}')
+            return False, ex
+
+
 def insert_into_goods(name='', amount=0):
     insert_query = f'''
             INSERT INTO {TABLE_GOODS} (name, amount)
@@ -65,12 +79,14 @@ def update_purchase_status(id:int, stat=0):
         WHERE id = {id};'''
     return query_execution(update_query)
 
+
 def update_order_price(id:int, price:int | float):
     update_query = f'''
         UPDATE {TABLE_ORDERS}
         SET sell_price = {price}
         WHERE id = {id};'''
     return query_execution(update_query)
+
 
 def update_order_date(id:int, date: str):
     update_query = f'''
@@ -79,11 +95,33 @@ def update_order_date(id:int, date: str):
         WHERE id = {id};'''
     return query_execution(update_query)
 
+
 def delete_row(row_id, table):
     del_query = f'''
         DELETE FROM {table}
         WHERE id = '{row_id}';'''
     return query_execution(del_query)
+
+
+def select_goods_name():
+    sel_query = f'''
+        SELECT name FROM {TABLE_GOODS};'''
+    return select_execution(sel_query)
+
+
+def select_goods_amount(goods_id):
+    sel_query = f'''
+        SELECT amount FROM {TABLE_GOODS}
+        WHERE id = {goods_id};'''
+    return select_execution(sel_query)
+
+
+def select_goods_id(name):
+    sel_query = f'''
+        SELECT id FROM {TABLE_GOODS}
+        WHERE name = '{name}'
+    '''
+    return select_execution(sel_query)
 
 
 create_table_goods = '''
@@ -110,9 +148,6 @@ create_table_order = '''
     FOREIGN KEY(purchase_id) REFERENCES purchase(id))'''
 
 if __name__ == '__main__':
-    # update_goods_amount(6, 1)
-    # update_purchase_status(1)
-    # update_purchase_status(3)
-    # update_purchase_status(5)
-
+    g_id = select_goods_name()
+    print(g_id)
     pass

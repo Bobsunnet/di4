@@ -17,25 +17,92 @@ HEADERS_STAT = ['Name', 'buy_price', 'sell_price', 'buy_date', 'sell_date']
 
 VALIDATOR_DIGITS = QtGui.QRegExpValidator(QtCore.QRegExp(r'[0-9.]+'))
 
-query_all_orders = '''SELECT orders.id, goods.name, sell_price, orders.date 
-                FROM orders 
-                JOIN purchase ON purchase.id = orders.purchase_id
-                JOIN goods ON goods.id = purchase.goods_id
-                ORDER BY orders.id DESC;'''
+query_all_orders = '''
+        SELECT orders.id, goods.name, sell_price, orders.date 
+        FROM orders 
+        JOIN purchase ON purchase.id = orders.purchase_id
+        JOIN goods ON goods.id = purchase.goods_id
+        ORDER BY orders.id DESC;'''
+
+query_total_purchases = '''
+        SELECT name, SUM(buy_price) as summa
+        FROM purchase 
+        JOIN goods ON purchase.goods_id = goods.id
+        GROUP BY goods_id;'''
+
+query_total_orders = '''
+        SELECT goods.name, sum(sell_price) as summa
+        FROM orders 
+        JOIN purchase ON purchase.id = orders.purchase_id
+        JOIN goods ON goods.id = purchase.goods_id
+        GROUP BY goods.name
+        ORDER BY orders.id DESC;'''
 
 
 TABLE_NAMES_LIST = [dbConnector.TABLE_GOODS, dbConnector.TABLE_PURCHASE, dbConnector.TABLE_ORDERS]
 
-class TextWidget(QtWidgets.QTextEdit):
+
+class AddWidget(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        self.linked_cell = None
+        self.widgets_setup()
+        self.layout_setup()
 
-    def link_cell(self, cell: tuple):
-        self.linked_cell = cell
+        self.goods_names_list = []
 
-    def get_linked_cell(self):
-        return self.linked_cell
+    def widgets_setup(self):
+        self.add_button = QtWidgets.QPushButton()
+        self.add_button.setText('Додати всі')
+
+        self.field_price = QtWidgets.QLineEdit()
+        self.field_price.setPlaceholderText('USD')
+        self.field_price.setValidator(VALIDATOR_DIGITS)
+
+        self.field_amount =QtWidgets.QLineEdit()
+        self.field_amount.setPlaceholderText('к-ть')
+        self.field_amount.setValidator(VALIDATOR_DIGITS)
+
+        self.field_date = QtWidgets.QLineEdit()
+        self.field_date.setPlaceholderText('yyyy-mm-dd')
+        self.field_date.setText(dbConnector.NOW_DATE.strftime('%Y-%m-%d'))
+
+        self.combox_goods_names = QtWidgets.QComboBox()
+        self.update_combobox_names()
+
+    def layout_setup(self):
+        layout_left = QtWidgets.QVBoxLayout()
+        layout_left.addWidget(self.field_amount)
+        layout_left.addWidget(self.field_price)
+        layout_left.addWidget(self.field_date)
+
+        layout_right = QtWidgets.QVBoxLayout()
+        layout_right.addWidget(self.add_button)
+        layout_right.addWidget(self.combox_goods_names)
+
+        layout_main = QtWidgets.QHBoxLayout()
+
+        layout_main.addLayout(layout_left,7)
+        layout_main.addLayout(layout_right,3)
+
+        self.setLayout(layout_main)
+
+    def get_field_data(self):
+        '''
+        :return: goods_name, price, amount, date
+        '''
+        goods_name = self.combox_goods_names.currentText()
+        date = self.field_date.text()
+        amount = int(self.field_amount.text())
+        price = float(self.field_price.text())
+        return goods_name, price, amount, date
+
+    def load_goods_list(self):
+        self.goods_names_list = [g[0] for g in dbConnector.select_goods_name()]
+
+    def update_combobox_names(self):
+        self.load_goods_list()
+        self.combox_goods_names.clear()
+        self.combox_goods_names.addItems(self.goods_names_list)
 
 
 class DataOperator:
@@ -133,12 +200,12 @@ class TableWindow(QtWidgets.QMainWindow):
         self.tab_widget.currentChanged.connect(self.tab_changed)
 
 
-        # _______________________________________BUTTONS_LAYER__________________________________
-        self.label_finder = QtWidgets.QLabel()
-        self.label_finder.setMaximumWidth(90)
-        self.label_finder.setStyleSheet(stylesheet.label_finder)
-        self.label_finder.setText('Пошук')
+        # _____________________________________ ADD WIDGET SETUP _______________________________
+        self.window_add_many_purchases = AddWidget()
+        self.window_add_many_purchases.add_button.clicked.connect(self.action_add_many_purchases)
 
+
+        # _______________________________________BUTTONS_LAYER__________________________________
         self.lnedit_finder = QtWidgets.QLineEdit()
         self.lnedit_finder.setStyleSheet(stylesheet.line_edit)
         self.lnedit_finder.setPlaceholderText('Пошук')
@@ -154,6 +221,12 @@ class TableWindow(QtWidgets.QMainWindow):
         self.btn_new_purchase.setStyleSheet(stylesheet.button_general)
         self.btn_new_purchase.setText('Додати Закупку')
         self.btn_new_purchase.clicked.connect(self.add_purchase)
+
+        self.btn_add_many_purchases = QtWidgets.QPushButton()
+        self.btn_add_many_purchases.setStyleSheet('background-color: #c3c305;')
+        self.btn_add_many_purchases.setText('Декілька Закупок')
+        self.btn_add_many_purchases.clicked.connect(self.btn_add_many_purchases_clicked)
+
 
         self.btn_new_order = QtWidgets.QPushButton()
         self.btn_new_order.setStyleSheet(stylesheet.button_general)
@@ -184,16 +257,17 @@ class TableWindow(QtWidgets.QMainWindow):
         self.btn_set_sell_date.setDisabled(True)
         self.btn_set_sell_date.clicked.connect(self.btn_update_sell_date_clicked)
 
+        self.btn_statistics_purchase = QtWidgets.QPushButton()
+        self.btn_statistics_purchase.setText('Purchase Stat')
+        self.btn_statistics_purchase.clicked.connect(self.btn_statistics_purchase_clicked)
+
+        self.btn_statistics_order = QtWidgets.QPushButton()
+        self.btn_statistics_order.setText('Orders Stat')
+        self.btn_statistics_order.clicked.connect(self.btn_statistics_order_clicked)
 
 
 
         # __________________________________TEXT_LAYER_________________________
-        self.text_widget = TextWidget()
-        self.text_widget.setDisabled(True)
-        # self.text_widget.setMaximumHeight(90)
-        # self.text_widget.cursorPositionChanged.connect(self.change_cell_text)
-        self.text_widget.setStyleSheet(stylesheet.text_edit)
-
         self.label_info = QtWidgets.QLabel()
         self.label_info.setText('id=???')
         self.label_info.setStyleSheet(stylesheet.label_info)
@@ -210,17 +284,17 @@ class TableWindow(QtWidgets.QMainWindow):
     def layout_setup(self):
         # ________________________________BUTTONS_LAYOUT___________________________________
         buttons_layout = QtWidgets.QHBoxLayout()
-        buttons_layout.setContentsMargins(10, 10, 300, 10)
+        # buttons_layout.setContentsMargins(10, 10, 300, 10)
         # buttons_layout.setSpacing(10)
 
-        buttons_layout.addWidget(self.label_finder)
         buttons_layout.addWidget(self.lnedit_finder)
         buttons_layout.addWidget(self.btn_new_goods)
         buttons_layout.addWidget(self.btn_new_purchase)
         buttons_layout.addWidget(self.btn_new_order)
         buttons_layout.addWidget(self.btn_delete_row)
+        buttons_layout.addWidget(self.btn_add_many_purchases)
 
-        # ________________________________TEXTWIDGET_LAYOUT___________________________________
+        # ________________________________EDIT WIDGETS_LAYOUT___________________________________
         properties_layout = QtWidgets.QHBoxLayout()
 
         label_date_layout = QtWidgets.QVBoxLayout()
@@ -228,10 +302,12 @@ class TableWindow(QtWidgets.QMainWindow):
         label_date_layout.addWidget(self.label_info)
 
         properties_layout.addLayout(label_date_layout)
-        properties_layout.addWidget(self.lnedit_sell_price)
-        properties_layout.addWidget(self.btn_set_sell_price)
-        properties_layout.addWidget(self.lnedit_date_order)
-        properties_layout.addWidget(self.btn_set_sell_date)
+        properties_layout.addWidget(self.lnedit_sell_price,2)
+        properties_layout.addWidget(self.btn_set_sell_price,3)
+        properties_layout.addWidget(self.lnedit_date_order,4)
+        properties_layout.addWidget(self.btn_set_sell_date,3)
+        properties_layout.addWidget(self.btn_statistics_purchase, 3)
+        properties_layout.addWidget(self.btn_statistics_order, 3)
 
         # ________________________________MAIN_LAYOUT___________________________________________
         top_layout_widget = QtWidgets.QWidget()
@@ -253,6 +329,38 @@ class TableWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(main_layout_widget)
 
 # _____________________________________ SIGNALS/ACTIONS ___________________________________________
+    def btn_add_many_purchases_clicked(self):
+        self.window_add_many_purchases.update_combobox_names()
+        self.window_add_many_purchases.show()
+
+    def action_add_many_purchases(self):
+        name, price,amount,date = self.window_add_many_purchases.get_field_data()
+        self.add_many_purchases(name,price,amount,date)
+
+        self.tab_widget.setCurrentIndex(1)
+
+    def btn_statistics_purchase_clicked(self):
+        self.show_purchase_total_stat()
+
+    def btn_statistics_order_clicked(self):
+        self.show_orders_total_stat()
+
+    def show_purchase_total_stat(self):
+        #todo свести два метода в один
+        query = sql_pyqt.QSqlQuery(query_total_purchases, db=sql_pyqt.db)
+        model = sql_pyqt.QSqlQueryModel()
+        model.setQuery(query)
+        self.table_view_stat.setModel(model)
+        self.tab_widget.setCurrentIndex(3)
+
+    def show_orders_total_stat(self):
+        query = sql_pyqt.QSqlQuery(query_total_orders, db=sql_pyqt.db)
+        model = sql_pyqt.QSqlQueryModel()
+        model.setQuery(query)
+        self.table_view_stat.setModel(model)
+        self.tab_widget.setCurrentIndex(3)
+
+
     def tab_changed(self, i):
         #TODO нужно передать функцию. Отрефакторить или вообще поменять подход
         self.data_cash.set_active_table(self.tab_widget.widget(i))
@@ -265,11 +373,9 @@ class TableWindow(QtWidgets.QMainWindow):
 
     def cell_highlighted(self, current):
         row, col = current.row(), current.column()
-        self.text_widget.link_cell((row, col))
         self.data_cash.set_cell_info(current, self.tab_widget.currentWidget().model())
 
         # меняем текст в виджете
-        self.change_text_widget(current)
         self.draw_label_info(row)
 
     def btn_show_all_clicked(self):
@@ -317,6 +423,16 @@ class TableWindow(QtWidgets.QMainWindow):
         elif i == 2:
             query = sql_pyqt.QSqlQuery(query_all_orders, db=sql_pyqt.db)
             self.model_orders.setQuery(query)
+
+    def add_many_purchases(self, goods_name, price, amount, date):
+        goods_id = dbConnector.select_goods_id(goods_name)[0][0]
+        try:
+            for i in range(amount):
+                dbConnector.insert_into_purchase(goods_id, price, date)
+            current_amount = dbConnector.select_goods_amount(goods_id)[0][0]
+            dbConnector.update_goods_amount(goods_id, current_amount+amount)
+        except Exception as ex:
+            self.draw_error_message('Шось не то =(', exception=ex)
 
     def add_purchase(self):
         try:
@@ -378,14 +494,6 @@ class TableWindow(QtWidgets.QMainWindow):
         model = self.tab_widget.currentWidget().model()
         self.label_info.setText(f'obj_id = {model.index(row, 0).data()}')
 
-    def change_date_edit(self):
-        pass
-
-    def change_text_widget(self,cell_index):
-        #todo переделать под задачи
-        model = self.tab_widget.currentWidget().model()
-        text = model.data(cell_index)
-        self.text_widget.setText(str(text))
 
     def get_active_cell_index(self):
         return self.data_cash.get_cell_info('index')
