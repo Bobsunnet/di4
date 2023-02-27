@@ -2,7 +2,7 @@ import re
 import sys
 
 from PyQt5 import QtWidgets, QtCore
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QModelIndex
 
 import dbConnector
 from di4.settings import sql_pyqt
@@ -25,11 +25,31 @@ class TextWidget(QtWidgets.QTextEdit):
     def get_linked_cell(self):
         return self.linked_cell
 
+class DataOperator:
+    def __init__(self):
+        self.cell_coords = None
+        self.model_list = []
+        self.active_table = None
+
+    def get_cell_coords(self):
+        return self.cell_coords
+
+    def set_sell_coords(self, coords: tuple):
+        self.cell_coords = coords
+
+    def get_active_table(self):
+        return self.active_table
+
+    def set_active_table(self, table:QtWidgets.QTableView):
+        self.active_table = table
+
 
 class TableWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super(TableWindow, self).__init__()
+
         self.setup_ui()
+        self.data_cash = DataOperator()
         self.model_create(dbConnector.TABLE_GOODS, HEADERS_GOODS, 'model_goods')
         self.model_create(dbConnector.TABLE_PURCHASE, HEADERS_PURCHASE, 'model_purchase')
         self.model_create(dbConnector.TABLE_ORDERS, HEADERS_ORDERS, 'model_orders')
@@ -43,17 +63,19 @@ class TableWindow(QtWidgets.QMainWindow):
         self.widgets_setup()
         self.layout_setup()
 
+        self.data_cash.active_table = self.tab_widget.currentWidget()
+
     def model_create(self, table, headers, model_name):
         model = sql_pyqt.QSqlTableModel(db=sql_pyqt.db)
         model.setTable(table)
         model.setEditStrategy(sql_pyqt.QSqlTableModel.EditStrategy.OnFieldChange)
         model.sort(0, Qt.SortOrder.DescendingOrder)
-        # for i, name in enumerate(headers):
-        #     model.setHeaderData(i + 1, Qt.Orientation.Horizontal, name)
+        for i, name in enumerate(headers):
+            model.setHeaderData(i + 1, Qt.Orientation.Horizontal, name)
 
         model.select()
-        print(model.columnCount())
         setattr(self, model_name, model)
+        self.data_cash.model_list.append(getattr(self, model_name))
 
     def create_table_view(self, model, obj_name):
         table_view = QtWidgets.QTableView()
@@ -75,11 +97,14 @@ class TableWindow(QtWidgets.QMainWindow):
         self.table_view_goods.selectionModel().currentChanged.connect(self.cell_highlighted)
 
     def widgets_setup(self):
+        # ____________________________________ TAB WIDGET SETUP _________________________
         self.tab_widget = QtWidgets.QTabWidget()
         tab_widgets_list = [self.table_view_goods, self.table_view_purchase, self.table_view_orders,
                             self.table_view_stat]
         for widg in tab_widgets_list:
             self.tab_widget.addTab(widg, widg.objectName()[11:].capitalize())
+        self.tab_widget.currentChanged.connect(self.tab_changed)
+
 
         # _______________________________________BUTTONS_LAYER__________________________________
         self.label_finder = QtWidgets.QLabel()
@@ -129,11 +154,11 @@ class TableWindow(QtWidgets.QMainWindow):
         self.label_info.setText('К-ть рядків: \n\n\nДата редагування: \n')
         self.label_info.setStyleSheet(stylesheet.label_info)
 
-        self.lnedit_date = QtWidgets.QLineEdit()
-        self.lnedit_date.setStyleSheet(stylesheet.line_edit)
-        self.lnedit_date.setPlaceholderText('date')
-        self.lnedit_date.returnPressed.connect(self.change_date_value)
-        self.lnedit_date.setMaximumWidth(120)
+        self.lnedit_id = QtWidgets.QLineEdit()
+        self.lnedit_id.setStyleSheet(stylesheet.line_edit)
+        self.lnedit_id.setPlaceholderText('date')
+        self.lnedit_id.returnPressed.connect(self.change_date_value)
+        self.lnedit_id.setMaximumWidth(120)
 
     def layout_setup(self):
         # ________________________________BUTTONS_LAYOUT___________________________________
@@ -154,7 +179,7 @@ class TableWindow(QtWidgets.QMainWindow):
         text_edit_layout.setContentsMargins(0, 10, 300, 10)
 
         label_date_layout = QtWidgets.QVBoxLayout()
-        label_date_layout.addWidget(self.lnedit_date)
+        label_date_layout.addWidget(self.lnedit_id)
         label_date_layout.addWidget(self.label_info)
 
         text_edit_layout.addLayout(label_date_layout)
@@ -179,6 +204,23 @@ class TableWindow(QtWidgets.QMainWindow):
 
         self.setCentralWidget(main_layout_widget)
 
+# _____________________________________ SIGNALS/ACTIONS ___________________________________________
+    def tab_changed(self, i):
+        self.data_cash.set_active_table(self.tab_widget.widget(i))
+        self.refresh_table(i)
+
+    def cell_highlighted(self, current):
+        # setting active cell coords
+        #в будущем попробовать работаь с обьектом ячейки, а не с координатами
+        row, col = current.row(), current.column()
+        self.text_widget.link_cell((row, col))
+        self.data_cash.set_sell_coords((row, col))
+
+        print(self.data_cash.active_table.model().index(row,col).data())
+        # меняем текст в виджете
+        self.change_text_widget(row, col)
+        self.draw_label_info(row)
+
     # __________________________________ LOGIC _______________________________________
     def add_purchase(self):
         try:
@@ -186,9 +228,16 @@ class TableWindow(QtWidgets.QMainWindow):
             goods_id = self.model_goods.data(self.model_goods.index(row, 0))
             dbConnector.insert_into_purchase(goods_id)
             self.tab_widget.setCurrentIndex(1)
+            current_amount = self.model_goods.data(self.model_goods.index(row, 2))
+            self.model_goods.setData(self.model_goods.index(row, 2), current_amount + 1)
         except Exception as ex:
             self.draw_error_message('Спочатку виберіть товар з таблиці "goods"', exception=ex)
 
+
+
+    def refresh_table(self, i):
+        if i <= 2:
+            self.data_cash.get_active_table().model().select()
 
 
     def add_order(self):
@@ -197,37 +246,20 @@ class TableWindow(QtWidgets.QMainWindow):
     def get_stats(self):
         print('Таблица статистики')
 
-    def cell_highlighted(self, current, previous):
-        current_row, current_col = current.row(), current.column()
-        self.text_widget.link_cell((current_row, current_col))
-        print(self.text_widget.get_linked_cell())
-        # меняем текст в виджете
-        self.change_text_widget(current_row, current_col)
-        self.draw_label_info(current_row)
-        # self.label_cell_change(current_row, current_col)
-
-        self.check_lsukr(previous.row(), previous.column())
-
-    def check_lsukr(self, row, col):
-        cell_value = self.model_goods.data(self.model_goods.index(row, col))
-        current_row = row
-        # создаем список всех LSUKR и сравниваем есть ли уже такой как в измененной ячейке
-        lsukr_list = [self.model_goods.data(self.model_goods.index(row, 1)) for row in
-                      range(self.model_goods.rowCount())
-                      if row != current_row]
-        if cell_value in lsukr_list:
-            self.btn_show_all_clicked()
 
     def draw_label_info(self, row):
-        date_record = self.model_goods.data(self.model_goods.index(row, 0))
-        self.lnedit_date.setText(str(date_record))
-        self.label_info.setText(f'К-ть рядків: \n{self.model_goods.rowCount()}\n\nДата редагування: \n{date_record}')
+        model = self.data_cash.active_table.model()
+        row_id = model.index(row, 0).data()
+        # self.lnedit_id.setText(str(row_id))
+        self.label_info.setText(f'К-ть рядків: \n{model.rowCount()}\n\nID рядку: \n{row_id}')
 
     def change_date_edit(self):
         pass
 
     def change_text_widget(self, row, col):
-        text = self.model_goods.data(self.model_goods.index(row, col))
+        #todo переделать под задачи
+        model = self.data_cash.active_table.model()
+        text = model.index(row, col).data()
         self.text_widget.setText(str(text))
 
     def get_linked_cell(self):
@@ -241,7 +273,7 @@ class TableWindow(QtWidgets.QMainWindow):
             self.model_goods.setData(self.model_goods.index(row, col), text)
 
     def change_date_value(self):
-        date = self.lnedit_date.text()
+        date = self.lnedit_id.text()
         linked_cell = self.get_linked_cell()
         if linked_cell:
             row = linked_cell[0]
