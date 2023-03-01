@@ -1,5 +1,5 @@
 from PyQt5.QtSql import QSqlDatabase, QSqlTableModel, QSqlRelationalTableModel, QSqlRelation, QSqlQueryModel, QSqlQuery
-from di4.settings.config import *
+from di4.settings.Constants import *
 import os
 
 basedir = os.path.dirname(__file__)

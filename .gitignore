@@ -160,6 +160,6 @@ cython_debug/
 #.idea/
 
 
-test.py
+di4/settings/functors.py
 di4/test.py
 di4/backupper.py

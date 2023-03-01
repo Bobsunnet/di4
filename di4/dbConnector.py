@@ -1,6 +1,6 @@
 import sqlite3 as sq
 from datetime import datetime
-from di4.settings.config import *
+from di4.settings.Constants import *
 
 NOW_DATE = datetime.utcnow().date()
 DB_NAME = f'settings/{DB_NAME}'
@@ -148,6 +148,6 @@ create_table_order = '''
     FOREIGN KEY(purchase_id) REFERENCES purchase(id))'''
 
 if __name__ == '__main__':
-    g_id = select_goods_name()
+    g_id = select_goods_id('antena1')
     print(g_id)
     pass
