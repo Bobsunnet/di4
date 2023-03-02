@@ -4,16 +4,21 @@ import sys
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import Qt
 
-import dbConnector
+from di4 import dbConnector
 from di4.settings import sql_pyqt
-from di4.settings.Constants import (QUERY_ALL_ORDERS,
-                                    QUERY_TOTAL_PURCHASES,
-                                    QUERY_TOTAL_ORDERS,
-                                    VALIDATOR_DIGITS,
-                                    BASE_QUERY_ORDERS_ALL)
+from di4.settings.Constants import (VALIDATOR_DIGITS,
+                                    BASE_QUERY_ORDERS_ALL,
+                                    BASE_TOTAL_PURCHASES,
+                                    BASE_TOTAL_ORDERS)
 from di4.static import stylesheet
 from di4.settings import MyExceptions
-from di4.settings.functors import QueryMaker
+from di4.settings.functors import QueryMaker, QueryMakerGroup
+
+
+from di4.settings.backuper import write_backup
+
+write_backup()
+
 
 HEADERS_GOODS = ['Name', 'amount']
 HEADERS_ORDERS = ['Name', 'sell_price', 'date']
@@ -23,21 +28,6 @@ HEADERS_STAT = ['Name', 'buy_price', 'sell_price', 'buy_date', 'sell_date']
 INIT_NOW_DATE = dbConnector.NOW_DATE.strftime('%Y-%m')
 
 TABLE_NAMES_LIST = [dbConnector.TABLE_GOODS, dbConnector.TABLE_PURCHASE, dbConnector.TABLE_ORDERS]
-
-
-
-def make_name_filter(text: str) -> str:
-    return f'name LIKE "%{text.strip()}%"'
-
-
-def make_date_filter(date: str) -> str:
-    return f'date LIKE "%{date.strip()}%"'
-
-
-def make_AND_filter(*filters) -> str:
-    """ :param filters: filters in str """
-    filters = [f for f in filters]
-    return ' AND '.join(filters)
 
 
 # TODO переделать способ формирования списка, потому что происходит дублирование массива
@@ -176,7 +166,6 @@ class TableWindow(QtWidgets.QMainWindow):
         self.lock_list = [self.btn_set_sell_date, self.btn_set_sell_price]
 
 
-
     def model_create(self, table:str, headers:list, model_name:str):
         model = sql_pyqt.QSqlRelationalTableModel(db=sql_pyqt.db)
         model.setTable(table)
@@ -204,12 +193,21 @@ class TableWindow(QtWidgets.QMainWindow):
     def query_makers_setup(self):
         self.goods_query = QueryMaker('goods')
         self.goods_query.set_WHERE_fields({'name':''})
+
         self.purchase_query = QueryMaker('purchase')
-        self.purchase_query.set_WHERE_fields({'purchase.date':INIT_NOW_DATE,
-                                              'name':''})
+        self.purchase_query.set_WHERE_fields({'purchase.date':INIT_NOW_DATE, 'name':''})
+
         self.orders_query = QueryMaker('orders',BASE_QUERY_ORDERS_ALL)
         self.orders_query.set_WHERE_fields({'orders.date':INIT_NOW_DATE, 'name':''})
         self.orders_query.set_ORDER_BY_fields('orders.id', ascending=False)
+
+        self.purchase_query_grouped = QueryMakerGroup('purchase', 'goods.id', BASE_TOTAL_PURCHASES)
+        self.purchase_query_grouped.set_WHERE_fields({'purchase.date': '2023-03', 'name': ''})
+        self.purchase_query_grouped.set_ORDER_BY_fields('name')
+
+        self.orders_query_grouped = QueryMakerGroup('orders', 'goods.name', BASE_TOTAL_ORDERS)
+        self.orders_query_grouped.set_WHERE_fields({'name': '', 'orders.date': '2023-03'})
+        self.orders_query_grouped.set_ORDER_BY_fields('name')
 
 
     def table_view_setup(self):
@@ -316,7 +314,16 @@ class TableWindow(QtWidgets.QMainWindow):
         self.checkbox_date_filter.setChecked(True)
         ch_box = self.checkbox_date_filter
         ch_box.clicked.connect(lambda: ch_box.setText('On') if ch_box.isChecked() else ch_box.setText('Off'))
+        ch_box.clicked.connect(
+            lambda: self.date_filter.setEnabled(True) if ch_box.isChecked() else self.date_filter.setEnabled(False))
         ch_box.clicked.connect(self.checkbox_filter_clicked)
+
+        self.lbl_quick_stat_buy = QtWidgets.QLabel()
+        self.lbl_quick_stat_buy.setText('buy_total: \n__ ')
+
+        self.lbl_quick_stat_sell = QtWidgets.QLabel()
+        self.lbl_quick_stat_sell.setText('sell_total: \n__ ')
+
 
         # ____________________________________ MODELS _________________________________
         self.model_purchase.setRelation(1, sql_pyqt.QSqlRelation("goods", 'id', 'name'))
@@ -341,13 +348,19 @@ class TableWindow(QtWidgets.QMainWindow):
         label_date_layout.addWidget(self.checkbox_date_filter)
         label_date_layout.addWidget(self.label_info)
 
+        stats_layout = QtWidgets.QVBoxLayout()
+        stats_layout.addWidget(self.lbl_quick_stat_buy)
+        stats_layout.addWidget(self.lbl_quick_stat_sell)
+
         properties_layout.addLayout(label_date_layout)
+        properties_layout.addLayout(stats_layout)
         properties_layout.addWidget(self.lnedit_sell_price,2)
         properties_layout.addWidget(self.btn_set_sell_price,3)
         properties_layout.addWidget(self.lnedit_date_order,4)
         properties_layout.addWidget(self.btn_set_sell_date,3)
         properties_layout.addWidget(self.btn_statistics_purchase, 3)
         properties_layout.addWidget(self.btn_statistics_order, 3)
+
 
         # ________________________________MAIN_LAYOUT___________________________________________
         top_layout_widget = QtWidgets.QWidget()
@@ -393,10 +406,32 @@ class TableWindow(QtWidgets.QMainWindow):
         self.window_add_many_purchases.show()
 
     def btn_statistics_purchase_clicked(self):
-        self.show_stat_table(QUERY_TOTAL_PURCHASES)
+        if self.checkbox_date_filter.isChecked():
+            query = self.purchase_query_grouped.get_full_query_grouped('purchase.date', 'name')
+        else:
+            query = self.purchase_query_grouped.get_full_query_grouped('name')
+        self.show_stat_table(query)
+        self.calculate_statistic_buy(query)
 
     def btn_statistics_order_clicked(self):
-        self.show_stat_table(QUERY_TOTAL_ORDERS)
+        if self.checkbox_date_filter.isChecked():
+            query = self.orders_query_grouped.get_full_query_grouped('orders.date', 'name')
+
+        else:
+            query = self.orders_query_grouped.get_full_query_grouped('name')
+        self.show_stat_table(query)
+        self.calculate_statistic_sell(query)
+
+    def calculate_statistic_buy(self, query_inner):
+        query = f'''SELECT SUM(buy_total) FROM ({query_inner[:-1]})'''
+        res = dbConnector.select_execution(query)
+        self.draw_quick_stat_buy(res[0][0])
+
+    def calculate_statistic_sell(self, query_inner):
+        query = f'''SELECT SUM(sell_total) FROM ({query_inner[:-1]})'''
+        res = dbConnector.select_execution(query)
+        self.draw_quick_stat_sell(res[0][0])
+
 
     def tab_changed(self, i):
         #TODO нужно передать функцию. Отрефакторить или вообще поменять подход
@@ -448,6 +483,12 @@ class TableWindow(QtWidgets.QMainWindow):
         elif table_index == 2:
             self.activate_filter_orders()
 
+    def draw_quick_stat_sell(self, text):
+        self.lbl_quick_stat_sell.setText(f'sell-total: \n{text}')
+
+    def draw_quick_stat_buy(self, text):
+        self.lbl_quick_stat_buy.setText(f'buy_total: \n{text}')
+
     def activate_filter_goods(self):
         self.model_goods.setFilter(self.goods_query.get_WHERE_filter('name'))
 
@@ -465,18 +506,23 @@ class TableWindow(QtWidgets.QMainWindow):
 
         self.model_orders.setQuery(sql_pyqt.QSqlQuery(orders_query, db=sql_pyqt.db))
 
-
     def update_name_filters(self):
         name = self.make_safe_filter_string(self.lnedit_finder.text())
+        # TODO отрефакторить через цикл
         self.goods_query.set_WHERE_fields({'name': name})
         self.purchase_query.set_WHERE_fields({'name': name})
         self.orders_query.set_WHERE_fields({'name': name})
+        self.purchase_query_grouped.set_WHERE_fields({'name':name})
+        self.orders_query_grouped.set_WHERE_fields({'name':name})
 
     def update_date_filters(self):
+        # TODO тоже отрефакторить через цикл
         date = self.make_safe_filter_string(self.date_filter.text())
-        self.orders_query.set_WHERE_fields({f'orders.date': date})
-        self.purchase_query.set_WHERE_fields({f'purchase.date': date})
-        print('[VIRTUAL] updating filters')
+        self.orders_query.set_WHERE_fields({'orders.date': date})
+        self.purchase_query.set_WHERE_fields({'purchase.date': date})
+        self.purchase_query_grouped.set_WHERE_fields({'purchase.date': date})
+        print(date)
+        self.orders_query_grouped.set_WHERE_fields({'orders.date': date})
 
     def refresh_completer(self):
         update_goods_completer()
@@ -522,8 +568,13 @@ class TableWindow(QtWidgets.QMainWindow):
         self.tab_widget.setCurrentIndex(3)
 
     def delete_row(self, row_id, table_index):
-        dbConnector.delete_row(row_id, TABLE_NAMES_LIST[table_index])
+        if table_index == 0:
+            dbConnector.delete_row(row_id, TABLE_NAMES_LIST[table_index])
+        elif table_index == 1:
+            query = f'''WHERE id = (SELECT goods_id FROM purchase WHERE id = {row_id})'''
+
         self.refresh_table(table_index)
+
 
     def get_goods_id(self, goods_name):
         try:
@@ -589,32 +640,6 @@ class TableWindow(QtWidgets.QMainWindow):
     def make_safe_filter_string(text):
         text_safe = re.sub(r'\"+', '', text.strip())
         return text_safe
-
-
-
-
-
-    # def action_filtered_search(self):
-    #     self.update_name_filters()
-    #
-    #     if self.tab_widget.currentIndex() in (0,1):
-    #
-    #         self.tab_widget.currentWidget().model().setFilter(filtered_string)
-    #     elif self.tab_widget.currentIndex() == 2:
-    #
-    #         #делаем фильтр для ордеров
-    #         # self.orders_query.set_WHERE_filter(name=text_safe, date=date_safe)
-    #         # filtered_string = self.orders_query(filtered=True)
-    #
-    #         query_raw = f'''SELECT orders.id, goods.name, sell_price, orders.date
-    #                 FROM orders JOIN purchase ON purchase.id = orders.purchase_id
-    #                 JOIN goods ON goods.id = purchase.goods_id
-    #                 WHERE name LIKE "%sp%"
-    #                 ORDER BY orders.id DESC;'''
-    #         query = sql_pyqt.QSqlQuery(query_raw, db=sql_pyqt.db)
-    #         print(filtered_string)
-    #         print(query_raw)
-    #         self.model_orders.setQuery(query)
 
     def action_add_new_goods(self):
         dbConnector.insert_into_goods()

@@ -1,12 +1,15 @@
+import os
 import sqlite3 as sq
 from datetime import datetime
 from di4.settings.Constants import *
 
 NOW_DATE = datetime.utcnow().date()
-DB_NAME = f'settings/{DB_NAME}'
+directory = os.path.dirname(__file__)
+
+DB_NAME = os.path.join(directory,f'settings/{DB_NAME}')
 
 
-def query_execution(query):
+def general_execution(query):
     with sq.connect(DB_NAME) as connection:
         try:
             cursor = connection.cursor()
@@ -25,6 +28,7 @@ def select_execution(query):
         try:
             cursor = connection.cursor()
             cursor.execute(query)
+            # TODO сделать чтоб метод возвращал просто курсор!!!!!!!!!!!!!
             return cursor.fetchall()
         except sq.IntegrityError as integrity_error:
             print(f'[ERROR] database problem: {integrity_error}')
@@ -40,7 +44,7 @@ def insert_into_goods(name='', amount=0):
             VALUES (
             '{name}',
             {amount}); '''
-    return query_execution(insert_query)
+    return general_execution(insert_query)
 
 
 def insert_into_purchase(goods_id: int, buy_price: int | float = 0, date: datetime = NOW_DATE, status = 1):
@@ -51,7 +55,7 @@ def insert_into_purchase(goods_id: int, buy_price: int | float = 0, date: dateti
             {buy_price},
              '{date}',
              {status}); '''
-    return query_execution(insert_query)
+    return general_execution(insert_query)
 
 
 def insert_into_orders(purchase_id: int, sell_price: int | float = 0, date: datetime = NOW_DATE):
@@ -61,7 +65,7 @@ def insert_into_orders(purchase_id: int, sell_price: int | float = 0, date: date
             {purchase_id},
             {sell_price},
              '{date}'); '''
-    return query_execution(insert_query)
+    return general_execution(insert_query)
 
 
 def update_goods_amount(id:int, amount:int):
@@ -69,7 +73,7 @@ def update_goods_amount(id:int, amount:int):
         UPDATE {TABLE_GOODS}
         SET amount = {amount}
         WHERE id = {id};'''
-    return query_execution(update_query)
+    return general_execution(update_query)
 
 
 def update_purchase_status(id:int, stat=0):
@@ -77,7 +81,7 @@ def update_purchase_status(id:int, stat=0):
         UPDATE {TABLE_PURCHASE}
         SET status = {stat}
         WHERE id = {id};'''
-    return query_execution(update_query)
+    return general_execution(update_query)
 
 
 def update_order_price(id:int, price:int | float):
@@ -85,7 +89,7 @@ def update_order_price(id:int, price:int | float):
         UPDATE {TABLE_ORDERS}
         SET sell_price = {price}
         WHERE id = {id};'''
-    return query_execution(update_query)
+    return general_execution(update_query)
 
 
 def update_order_date(id:int, date: str):
@@ -93,14 +97,14 @@ def update_order_date(id:int, date: str):
         UPDATE {TABLE_ORDERS}
         SET date = '{date}'
         WHERE id = {id};'''
-    return query_execution(update_query)
+    return general_execution(update_query)
 
 
 def delete_row(row_id, table):
     del_query = f'''
         DELETE FROM {table}
         WHERE id = '{row_id}';'''
-    return query_execution(del_query)
+    return general_execution(del_query)
 
 
 def select_goods_name():
@@ -147,7 +151,13 @@ create_table_order = '''
     date TEXT,
     FOREIGN KEY(purchase_id) REFERENCES purchase(id))'''
 
+purchase_summa = ''' SELECT sum(summa)
+		FROM (SELECT SUM(buy_price) as summa
+        FROM purchase 
+        JOIN goods ON purchase.goods_id = goods.id
+		WHERE purchase.date LIKE "%2023-03%" 
+        GROUP BY goods_id);'''
+
 if __name__ == '__main__':
-    g_id = select_goods_id('antena1')
-    print(g_id)
+    print(select_execution(purchase_summa))
     pass
