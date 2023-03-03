@@ -10,8 +10,6 @@ backup_folder = os.path.join(root_folder, 'backups')
 
 directory_objects = os.listdir(root_folder)
 
-print(directory_objects)
-
 
 def create_backup_folder():
     if 'backups' not in directory_objects:
