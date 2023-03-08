@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="b4b70661-bde8-451d-a631-1f3d706b3ecd" name="Changes" comment="1. изменены таблицы и связи FK в них&#10;2. переписаны несколько методов под эти таблицы&#10;3.небольшой рефакторинг">
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/di4/settings/backups/2023-03-01_bampera.db" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/di4/settings/backups/2023-03-03_bampera.db" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/di4/settings/bampera.db" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/di4/settings/boot_config.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/di4/static/icons/delete.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/di4/static/icons/postal.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/di4/static/icons/purchasing.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/di4/static/icons/selling.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/di4/static/icons/trash.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tasks.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/di4/dbConnector.py" beforeDir="false" afterPath="$PROJECT_DIR$/di4/dbConnector.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/di4/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/di4/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/di4/static/style.css" beforeDir="false" afterPath="$PROJECT_DIR$/di4/static/style/style.css" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="2MH3qJ3KzbCxFf4NDzB4SBhn9WG" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;F:/pyProj/di4/di4/static/icons&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="F:\pyProj\di4\di4\static\icons" />
+      <recent name="F:\pyProj\di4\di4\settings" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="F:\pyProj\di4\di4\static\style" />
+      <recent name="F:\pyProj\di4\di4\settings" />
+      <recent name="F:\pyProj\di4" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Python.main (2)">
+    <configuration name="dbConnector" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="di4" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/di4" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/di4/dbConnector.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="main (2)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="di4" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/di4" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/di4/main.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="main_root" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="di4" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main_root.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="seql_templates" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="di4" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/di4/settings" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/di4/settings/seql_templates.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="test" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="di4" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.main (2)" />
+        <item itemvalue="Python.test" />
+        <item itemvalue="Python.dbConnector" />
+        <item itemvalue="Python.seql_templates" />
+        <item itemvalue="Python.main_root" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="b4b70661-bde8-451d-a631-1f3d706b3ecd" name="Changes" comment="" />
+      <created>1677410869326</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1677410869326</updated>
+    </task>
+    <task id="LOCAL-00001" summary="1.отображение трех сырых таблиц&#10;2.кнопка добавления закупки&#10;3.мелки изменения">
+      <created>1677422002367</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1677422002367</updated>
+    </task>
+    <task id="LOCAL-00002" summary="1. возможность(пока коряво) вносить и изменять входные данные для таблиц. &#10;2. частично переделал виджеты">
+      <created>1677507192417</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1677507192417</updated>
+    </task>
+    <task id="LOCAL-00003" summary="1. добавлена агрегированная таблица для ордера и закупок &#10;2. добавлена возможность заносить сразу много одинаковых закупок&#10;3.мелкие изменения">
+      <created>1677520681187</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1677520681187</updated>
+    </task>
+    <task id="LOCAL-00004" summary="1. сделана фильтрация по дате">
+      <created>1677669423009</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1677669423009</updated>
+    </task>
+    <task id="LOCAL-00005" summary="1. доделан вывод статистики на виджет&#10;2. добавлен бекапер.нотупорылый пока">
+      <created>1677776657028</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1677776657028</updated>
+    </task>
+    <task id="LOCAL-00006" summary="1. сброс на доделку">
+      <created>1677776810689</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1677776810689</updated>
+    </task>
+    <task id="LOCAL-00007" summary="1. изменены таблицы и связи FK в них&#10;2. переписаны несколько методов под эти таблицы&#10;3.небольшой рефакторинг">
+      <created>1677854499823</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1677854499823</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="1.отображение трех сырых таблиц&#10;2.кнопка добавления закупки&#10;3.мелки изменения" />
+    <MESSAGE value="1. возможность(пока коряво) вносить и изменять входные данные для таблиц. &#10;2. частично переделал виджеты" />
+    <MESSAGE value="1. добавлена агрегированная таблица для ордера и закупок &#10;2. добавлена возможность заносить сразу много одинаковых закупок&#10;3.мелкие изменения" />
+    <MESSAGE value="1. сделана фильтрация по дате" />
+    <MESSAGE value="1. доделан вывод статистики на виджет&#10;2. добавлен бекапер.нотупорылый пока" />
+    <MESSAGE value="1. сброс на доделку" />
+    <MESSAGE value="1. изменены таблицы и связи FK в них&#10;2. переписаны несколько методов под эти таблицы&#10;3.небольшой рефакторинг" />
+    <option name="LAST_COMMIT_MESSAGE" value="1. изменены таблицы и связи FK в них&#10;2. переписаны несколько методов под эти таблицы&#10;3.небольшой рефакторинг" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/di4/main.py</url>
+          <line>685</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>

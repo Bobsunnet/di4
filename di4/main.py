@@ -1,22 +1,28 @@
+import os
 import re
 import sys
 
 from PyQt5 import QtWidgets, QtCore, QtGui
-from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QHeaderView
 
 from di4 import dbConnector
 from di4.settings import sql_pyqt
 from di4.settings.Constants import (VALIDATOR_DIGITS,
                                     BASE_TOTAL_PURCHASES,
                                     BASE_TOTAL_ORDERS)
-from di4.static import stylesheet
 from di4.settings import MyExceptions
 from di4.settings.functors import QueryMaker, QueryMakerGroup
-
-
 from di4.settings.backuper import write_backup
 
 write_backup()
+
+BASEDIR = os.path.dirname(__file__)
+STYLES_PATH = os.path.join(BASEDIR, 'static/style/style.css')
+
+with open(STYLES_PATH, 'r') as file:
+    style = file.read()
+
 
 
 HEADERS_GOODS = ['Name', 'amount']
@@ -52,6 +58,28 @@ def update_goods_completer():
     goods_completer.setCaseSensitivity(Qt.CaseInsensitive)
 
 
+class MyTableView(QtWidgets.QTableView):
+    def __init__(self):
+        super(MyTableView, self).__init__()
+
+        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.right_menu)
+
+    def right_menu(self, pos):
+        menu = QtWidgets.QMenu()
+
+        # Add menu options
+        hello_option = menu.addAction('testing: add purchase')
+        goodbye_option = menu.addAction('testing: add order')
+
+        # Menu option events
+        hello_option.triggered.connect(mainWindow.btn_add_purchase_clicked)
+        goodbye_option.triggered.connect(mainWindow.btn_add_order_clicked)
+
+        # Position
+        menu.exec_(self.mapToGlobal(pos))
+
+
 class AddWidget(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
@@ -67,7 +95,7 @@ class AddWidget(QtWidgets.QWidget):
         self.add_button.setText('Додати всі')
 
         self.field_price = QtWidgets.QLineEdit()
-        self.field_price.setPlaceholderText('USD')
+        self.field_price.setPlaceholderText('0.00')
         self.field_price.setValidator(VALIDATOR_DIGITS)
 
         self.field_amount = QtWidgets.QLineEdit()
@@ -115,7 +143,7 @@ class AddWidget(QtWidgets.QWidget):
         goods_name = self.combox_goods_names.currentText()
         date = self.field_date.text()
         amount = int(self.field_amount.text())
-        price = float(self.field_price.text())
+        price = float(self.field_price.text()) if self.field_price.text() else 0
         return goods_name, price, amount, date
 
     def update_combobox_names(self):
@@ -140,6 +168,7 @@ class DataOperator:
         self.cell_info['index'] = None
         self.cell_info['model'] = None
 
+
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
@@ -159,16 +188,20 @@ class MainWindow(QtWidgets.QMainWindow):
         self.layout_setup()
         self.tool_bar_setup()
 
-
     def tool_bar_setup(self):
         tool_bar = QtWidgets.QToolBar('Main toolbar')
-        tool_bar.setIconSize(QSize(16,16))
+        tool_bar.setIconSize(QtCore.QSize(16,16))
         self.addToolBar(tool_bar)
 
         self.act_debug = QtWidgets.QAction(QtGui.QIcon('static/icons/bug.png'), 'debug', self)
         self.act_debug.triggered.connect(self.debug_action)
+        self.act_add_many_purchases = QtWidgets.QAction('Кілька закупок')
+        #todo сделать отдельным потоком это действие
+        self.act_add_many_purchases.triggered.connect(self.btn_add_many_purchases_clicked)
 
         tool_bar.addAction(self.act_debug)
+        tool_bar.addSeparator()
+        tool_bar.addAction(self.act_add_many_purchases)
 
     def model_create(self, table:str, headers:list, model_name:str):
         model = sql_pyqt.QSqlRelationalTableModel(db=sql_pyqt.db)
@@ -183,14 +216,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.data_cash.model_list.append(getattr(self, model_name))
 
     def create_table_view(self, model, obj_name):
-        table_view = QtWidgets.QTableView()
+        table_view = MyTableView()
         table_view.setObjectName(obj_name)
         table_view.setModel(model)
-        # table_view.horizontalHeader().setStyleSheet(stylesheet.horizontal_header)
-        # table_view.verticalHeader().setStyleSheet(stylesheet.vertical_header)
         table_view.hideColumn(0)
         for i in range(model.columnCount() - 1):
             table_view.horizontalHeader().setSectionResizeMode(i, QtWidgets.QHeaderView.ResizeToContents)
+        table_view.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
 
         setattr(self, obj_name, table_view)
 
@@ -217,18 +249,22 @@ class MainWindow(QtWidgets.QMainWindow):
         self.create_table_view(getattr(self,'model_goods'), 'table_view_goods')
         self.create_table_view(getattr(self,'model_purchase'), 'table_view_purchase')
         self.create_table_view(getattr(self,'model_orders'), 'table_view_orders')
+
         self.table_view_stat = QtWidgets.QTableView()
         self.table_view_stat.setObjectName('table_view_stat')
+        self.table_view_stat.horizontalHeader().setSectionResizeMode(1)
 
         # при нажатии на ячейку срабатывает ивентлуп
         self.table_view_goods.selectionModel().currentChanged.connect(self.cell_highlighted)
+        self.table_view_goods.horizontalHeader().setProperty('goods', True)
         self.table_view_purchase.selectionModel().currentChanged.connect(self.cell_highlighted)
+        self.table_view_purchase.horizontalHeader().setProperty('purchases', True)
         self.table_view_orders.selectionModel().currentChanged.connect(self.cell_highlighted)
+        self.table_view_orders.horizontalHeader().setProperty('orders', True)
 
     def widgets_setup(self):
         # ____________________________________ TAB WIDGET SETUP _________________________
         self.tab_widget = QtWidgets.QTabWidget()
-        self.tab_widget.setStyleSheet('font-size: 15px;')
         tab_widgets_list = [self.table_view_goods, self.table_view_purchase, self.table_view_orders,
                             self.table_view_stat]
         for widg in tab_widgets_list:
@@ -241,55 +277,50 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # _______________________________________BUTTONS_LAYER__________________________________
         self.lnedit_finder = QtWidgets.QLineEdit()
-        self.lnedit_finder.setStyleSheet(stylesheet.line_edit)
         self.lnedit_finder.setPlaceholderText('Пошук')
         self.lnedit_finder.setCompleter(goods_completer)
         self.lnedit_finder.returnPressed.connect(self.lnedit_finder_pressed)
         self.lnedit_finder.setMaximumWidth(500)
 
         self.btn_new_goods = QtWidgets.QPushButton()
-        # self.btn_new_goods.setStyleSheet(stylesheet.button_general)
+        self.btn_new_goods.setIcon(QtGui.QIcon('static/icons/postal.png'))
+        self.btn_new_goods.setObjectName('new_goods')
         self.btn_new_goods.setText('Додати Товар')
         self.btn_new_goods.clicked.connect(self.btn_new_goods_clicked)
 
         self.btn_new_purchase = QtWidgets.QPushButton()
-        self.btn_new_purchase.setStyleSheet(stylesheet.button_general)
+        self.btn_new_purchase.setIcon(QtGui.QIcon('static/icons/purchasing.png'))
+        self.btn_new_purchase.setObjectName('new_purchase')
         self.btn_new_purchase.setText('Додати Закупку')
         self.btn_new_purchase.clicked.connect(self.btn_add_purchase_clicked)
 
-        self.btn_add_many_purchases = QtWidgets.QPushButton()
-        self.btn_add_many_purchases.setStyleSheet('background-color: #c3c305;')
-        self.btn_add_many_purchases.setText('Декілька Закупок')
-        self.btn_add_many_purchases.clicked.connect(self.btn_add_many_purchases_clicked)
-
         self.btn_new_order = QtWidgets.QPushButton()
-        self.btn_new_order.setStyleSheet(stylesheet.button_general)
+        self.btn_new_order.setIcon(QtGui.QIcon('static/icons/selling.png'))
+        self.btn_new_order.setObjectName('new_order')
         self.btn_new_order.setText('Додати продажу')
         self.btn_new_order.clicked.connect(self.btn_add_order_clicked)
 
         self.btn_delete_row = QtWidgets.QPushButton()
-        self.btn_delete_row.setStyleSheet(stylesheet.button_delete)
+        self.btn_delete_row.setIcon(QtGui.QIcon('static/icons/trash.png'))
+        self.btn_delete_row.setObjectName('delete_row')
         self.btn_delete_row.setText('Видалити')
         self.btn_delete_row.clicked.connect(self.btn_delete_row_clicked)
 
     # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ EDITING LAYER ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
         self.btn_statistics_purchase = QtWidgets.QPushButton()
-        self.btn_statistics_purchase.setText('Purchase Stat')
-        self.btn_statistics_purchase.setStyleSheet('background-color: #f0776e;')
+        self.btn_statistics_purchase.setText('Статистика Закупок')
         self.btn_statistics_purchase.clicked.connect(self.btn_statistics_purchase_clicked)
 
         self.btn_statistics_order = QtWidgets.QPushButton()
-        self.btn_statistics_order.setText('Orders Stat')
-        self.btn_statistics_order.setStyleSheet('background-color: #bfed61;')
+        self.btn_statistics_order.setText('Статистика Продажів')
+
         self.btn_statistics_order.clicked.connect(self.btn_statistics_order_clicked)
 
         # __________________________________TEXT_LAYER_________________________
         self.label_info = QtWidgets.QLabel()
         self.label_info.setText('id=???')
-        self.label_info.setStyleSheet(stylesheet.label_info)
 
         self.date_filter = QtWidgets.QLineEdit()
-        self.date_filter.setStyleSheet(stylesheet.line_edit)
         self.date_filter.setPlaceholderText('yyyy-mm')
         self.date_filter.setText(INIT_NOW_MONTH)
         self.date_filter.setMaximumWidth(120)
@@ -304,17 +335,18 @@ class MainWindow(QtWidgets.QMainWindow):
         ch_box.clicked.connect(self.checkbox_filter_clicked)
 
         self.lbl_quick_stat_buy = QtWidgets.QLabel()
-        self.lbl_quick_stat_buy.setStyleSheet('font: 18px;')
+        self.lbl_quick_stat_buy.setProperty('LabelStat', True)
+        self.lbl_quick_stat_buy.setObjectName('stat_buy')
         self.lbl_quick_stat_buy.setText('buy_total: \n__ ')
 
         self.lbl_quick_stat_sell = QtWidgets.QLabel()
-        self.lbl_quick_stat_sell.setStyleSheet('font: 18px;')
+        self.lbl_quick_stat_sell.setProperty('LabelStat', True)
+        self.lbl_quick_stat_sell.setObjectName('stat_sell')
         self.lbl_quick_stat_sell.setText('sell_total: \n__ ')
 
         # ____________________________________ MODELS _________________________________
         self.model_purchase.setRelation(1, sql_pyqt.QSqlRelation("goods", 'id', 'name'))
         self.model_orders.setRelation(1, sql_pyqt.QSqlRelation("goods", 'id', 'name'))
-
 
     def layout_setup(self):
         # ________________________________BUTTONS_LAYOUT___________________________________
@@ -325,7 +357,6 @@ class MainWindow(QtWidgets.QMainWindow):
         buttons_layout.addWidget(self.btn_new_purchase)
         buttons_layout.addWidget(self.btn_new_order)
         buttons_layout.addWidget(self.btn_delete_row)
-        buttons_layout.addWidget(self.btn_add_many_purchases)
 
         # ________________________________EDIT WIDGETS_LAYOUT___________________________________
         properties_layout = QtWidgets.QHBoxLayout()
@@ -344,6 +375,7 @@ class MainWindow(QtWidgets.QMainWindow):
         stats_sell_layout.addWidget(self.lbl_quick_stat_sell,7)
 
         properties_layout.addLayout(label_date_layout)
+        properties_layout.addSpacing(500)
         properties_layout.addLayout(stats_buy_layout)
         properties_layout.addLayout(stats_sell_layout)
 
@@ -352,7 +384,7 @@ class MainWindow(QtWidgets.QMainWindow):
         top_layout_widget.setLayout(properties_layout)
         main_layout = QtWidgets.QVBoxLayout()
 
-        splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
+        splitter = QtWidgets.QSplitter(Qt.Vertical)
         splitter.addWidget(top_layout_widget)
         splitter.addWidget(self.tab_widget)
         splitter.setStretchFactor(1, 1)
@@ -368,10 +400,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
 # _____________________________________ SIGNALS/ACTIONS ___________________________________________
     def debug_action(self):
-        print('Not currently used')
+        print(self.get_row_id())
 
     def date_filter_pressed(self):
         self.date_filter_activate()
+
+    def date_filter_activate(self):
+        self.update_date_filters()
+        self.activate_filter()
 
     def lnedit_finder_pressed(self):
         self.update_name_filters()
@@ -379,10 +415,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def checkbox_filter_clicked(self):
         self.date_filter_activate()
-
-    def date_filter_activate(self):
-        self.update_date_filters()
-        self.activate_filter()
 
     def btn_new_goods_clicked(self):
         self.action_add_new_goods()
@@ -396,6 +428,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.window_add_many_purchases.show()
 
     def btn_statistics_purchase_clicked(self):
+        self.update_name_filters()
         if self.checkbox_date_filter.isChecked():
             query = self.purchase_query_grouped.get_full_query_grouped('purchase.date', 'name')
         else:
@@ -404,6 +437,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.calculate_statistic_buy(query)
 
     def btn_statistics_order_clicked(self):
+        self.update_name_filters()
         if self.checkbox_date_filter.isChecked():
             query = self.orders_query_grouped.get_full_query_grouped('orders.date', 'name')
         else:
@@ -449,6 +483,8 @@ class MainWindow(QtWidgets.QMainWindow):
         except Exception as ex:
             self.draw_error_message('Шось не то =(', exception=ex)
 
+        self.data_cash.reset_cell_info()
+
     def delete_row(self, row_id, table_index):
         # TODO Очень коряво сделано удаление. продумать еще варианты
 
@@ -456,7 +492,6 @@ class MainWindow(QtWidgets.QMainWindow):
             goods_id_query = f'''SELECT goods_id FROM {TABLE_NAMES_LIST[table_index]} WHERE id = {row_id}'''
 
             goods_id = dbConnector.general_execution(goods_id_query)
-            print(goods_id)
             if table_index == 1:
                 if goods_id:
                     dbConnector.update_goods_amount(goods_id[0][0], -1)
@@ -540,8 +575,10 @@ class MainWindow(QtWidgets.QMainWindow):
     def btn_add_purchase_clicked(self):
         try:
             if self.tab_widget.currentIndex() != 0:
-                raise MyExceptions.GeneralException('Має бути вибрана таблиця "goods"')
+                raise MyExceptions.GeneralException('Додавати потрібно з таблиці "goods"')
+
             goods_id = self.get_row_id()
+            print(goods_id)
             if not goods_id:
                 raise MyExceptions.GeneralException('Спочатку оберіть товар який хочете додати з таблиці "goods"')
             self.add_purchase(goods_id)
@@ -554,22 +591,24 @@ class MainWindow(QtWidgets.QMainWindow):
         dbConnector.update_goods_amount(goods_id, amount)
 
         self.tab_widget.setCurrentIndex(1)
+        self.refresh_table(1)
 
     def action_add_many_purchases(self):
         name, price,amount,date = self.window_add_many_purchases.get_field_data()
-        goods_id = self.get_goods_id(name)
-        if goods_id:
-            self.add_purchase(goods_id,amount,price,date)
+        if amount > 10:
+            self.draw_error_message('Можна додавати не більше 10 штук за раз')
+        else:
+            goods_id = self.get_goods_id(name)
+            if goods_id:
+                self.add_purchase(goods_id,amount,price,date)
 
     # _________________________________ ADD ORDER _____________________________________
     def btn_add_order_clicked(self):
         try:
-            if self.tab_widget.currentIndex() != 0:
-                raise MyExceptions.GeneralException('Додавати потрібно з таблиці "goods"')
             goods_id = self.get_row_id()
-            print(goods_id)
+            if self.tab_widget.currentIndex() != 0 or not goods_id:
+                raise MyExceptions.GeneralException('Додавати потрібно з таблиці "goods"')
             self.add_order(goods_id)
-            print('success')
         except Exception as ex:
             self.draw_error_message('Помилка роботи з таблицею', exception=ex)
 
@@ -613,13 +652,14 @@ class MainWindow(QtWidgets.QMainWindow):
             self.draw_error_message('Такого товару не знайдено =(', exception=ex)
 
     def get_row_id(self):
-        try:
-            cell_index_row = self.get_active_cell_index().row()
-            model = self.get_active_cell_model()
-            row_id = model.index(cell_index_row, 0).data()
-            return row_id
-        except Exception as ex:
-            print(ex)
+        if self.get_active_cell_index():
+            try:
+                cell_index_row = self.get_active_cell_index().row()
+                model = self.get_active_cell_model()
+                row_id = model.index(cell_index_row, 0).data()
+                return row_id
+            except Exception as ex:
+                print(ex)
 
     @staticmethod
     def make_safe_filter_string(text):
@@ -641,6 +681,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
+    app.setStyleSheet(style)
 
     mainWindow = MainWindow()
     mainWindow.show()

@@ -1,0 +1,234 @@
+QToolBar {
+    color: blue;
+    background-color: rgb(219, 223, 224);
+    selection-color: yellow;
+    selection-background-color: blue;
+}
+
+QComboBox
+{
+    font-size: 14px;
+    font-family: Rubik;
+    background-color: #eeeeee;
+    border-style: solid;
+    border: 1px solid #1e1e1e;
+    border-radius: 3;
+    padding: 1px 0px 1px 20px;
+}
+
+QAction {
+    font-size: 14px;
+}
+
+QComboBox:hover, QPushButton:hover
+{
+    border: 1px solid rgb(119, 160, 165);
+    color: rgb(46, 37, 37);
+}
+
+QTableView {
+    color: black;
+    gridline-color: black;
+    border-color: rgb(242, 128, 133);
+    font: 14px;
+}
+QHeaderView {
+    font-size: 15px;
+}
+
+QTableView QTableCornerButton::section {
+    background: #d6e5e5;
+    border: 1px outset rgb(31, 31, 31);
+}
+
+QHeaderView::section {
+    background-color: #e6e5e5;
+    color: #1C2025;
+    height: 30px;
+    font: 13px;
+}
+
+QTabWidget {
+    font-size: 16px;
+}
+
+
+QLabel#label_info {
+    font: 16px sans-serif;
+    font-size: 13px;
+    background-color: #f3f3d3;
+    border-style: outset;
+    border-width: 1px;
+    border-radius: 4px;
+    border-color: #1C3045;
+}
+
+*[LabelStat="true"] {
+    border-style: inset;
+    border-width: 1px;
+    border-radius: 4px;
+    border-color: #1C3045;
+    font-size: 16px;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+QLabel#stat_buy {
+    background-color: #e4e6a4;
+}   
+
+QLabel#stat_sell {
+    background-color: #b6d49d;
+}   
+
+
+QLineEdit {
+    font-size: 16px;
+    font-family: Rubik;
+    background-color: #e3e8f0;
+    border: 1px solid #1C3025;
+    border-radius: 5px;
+}
+
+QLineEdit:focus {
+    background-color: #f5f5f5;
+    border-color: #2C4065;
+}
+
+
+QPushButton {
+    background-color: #e3edf0;
+    color: #1C2025;
+    font-family: Helvetica, sans-serif;
+    font-size: 12px;
+    margin:2px;
+    padding: 2px;
+    border-style: inset;
+    border-radius: 4px;
+    border-width: 2px;
+    border-color: #1C3045;
+    min-height: 20px;
+    text-align: left;
+}
+
+QPushButton:hover {
+    background-color: #beccdd;
+    font: 13px;
+}
+
+QPushButton:pressed {
+    background-color: rgb(129, 129, 129);
+}
+
+
+QPushButton#delete_row {
+    background-color: #ad3e40;
+    color: #FCAE6B;
+}
+
+QPushButton#delete_row:hover {
+    background-color: #b47a72;
+    font:bold 13px;
+}
+
+QPushButton#new_goods {
+    background-color: #a3d3d1;
+}
+
+QPushButton#new_goods:hover {
+    background-color: #ccdddd;
+    font: 13px;
+}
+
+QPushButton#new_purchase {
+    background-color: #e4e6a4;
+}
+
+QPushButton#new_purchase:hover {
+    background-color: #daddcc;
+    font: 13px;
+}
+
+QPushButton#new_order {
+    background-color: #b6d49d;
+}
+
+QPushButton#new_order:hover {
+    background-color: #d6ddcc;
+    font: 13px;
+}
+
+
+QTabWidget::pane {
+    border: 1px solid black;
+    background: white;
+}
+
+QTabBar::tab {
+    border: 1px solid black;
+}
+
+QTabBar::tab:selected {
+    background: white;
+}
+
+QTabBar::tab:!selected {
+    background: silver;
+}
+
+QTabBar::tab:!selected:hover {
+    background: #999;
+}
+
+QTabBar::tab:top:!selected {
+    margin-top: 3px;
+}
+
+QTabBar::tab:bottom:!selected {
+    margin-bottom: 3px;
+}
+
+QTabBar::tab:top, QTabBar::tab:bottom {
+    min-width: 8ex;
+    margin-right: -1px;
+    padding: 5px 10px 5px 10px;
+}
+
+QTabBar::tab:top:selected {
+    border-bottom-color: none;
+}
+
+QTabBar::tab:bottom:selected {
+    border-top-color: none;
+}
+
+QTabBar::tab:top:last, QTabBar::tab:bottom:last,
+QTabBar::tab:top:only-one, QTabBar::tab:bottom:only-one {
+    margin-right: 0;
+}
+
+QTabBar::tab:left:!selected {
+    margin-right: 3px;
+}
+
+QTabBar::tab:right:!selected {
+    margin-left: 3px;
+}
+
+QTabBar::tab:left, QTabBar::tab:right {
+    min-height: 8ex;
+    margin-bottom: -1px;
+    padding: 10px 5px 10px 5px;
+}
+
+QTabBar::tab:left:selected {
+    border-left-color: none;
+}
+
+QTabBar::tab:right:selected {
+    border-right-color: none;
+}
+
+QTabBar::tab:left:last, QTabBar::tab:right:last,
+QTabBar::tab:left:only-one, QTabBar::tab:right:only-one {
+    margin-bottom: 0;
+}

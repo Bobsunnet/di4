@@ -10,7 +10,7 @@ DB_NAME = os.path.join(directory,f'settings/{DB_NAME}')
 
 
 def general_execution(query):
-    with sq.connect(DB_NAME) as connection:
+    with sq.connect(DB_NAME, timeout=10) as connection:
         try:
             cursor = connection.cursor()
             cursor.execute('PRAGMA foreign_keys = ON;')
