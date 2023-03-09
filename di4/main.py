@@ -258,6 +258,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.table_view_goods.selectionModel().currentChanged.connect(self.cell_highlighted)
         self.table_view_goods.horizontalHeader().setProperty('goods', True)
         self.table_view_purchase.selectionModel().currentChanged.connect(self.cell_highlighted)
+        self.table_view_purchase.selectionModel().selectionChanged.connect(self.debug_selection_test)
         self.table_view_purchase.horizontalHeader().setProperty('purchases', True)
         self.table_view_orders.selectionModel().currentChanged.connect(self.cell_highlighted)
         self.table_view_orders.horizontalHeader().setProperty('orders', True)
@@ -401,6 +402,11 @@ class MainWindow(QtWidgets.QMainWindow):
 # _____________________________________ SIGNALS/ACTIONS ___________________________________________
     def debug_action(self):
         print(self.get_row_id())
+
+    def debug_selection_test(self, current, previous):
+        for index in current.indexes():
+            print(index.row())
+
 
     def date_filter_pressed(self):
         self.date_filter_activate()
@@ -586,8 +592,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.draw_error_message('Помилка роботи з таблицею', exception=ex)
 
     def add_purchase(self, goods_id: int, amount: int = 1, price: int | float = 0, date=INIT_NOW_MONTH):
-        for i in range(amount):
-            dbConnector.insert_into_purchase(goods_id, price, date)
+        purchases_list = [(goods_id, price, date) for _ in range(amount)]
+        query = f'''INSERT INTO {dbConnector.TABLE_PURCHASE} VALUES (NULL, ?, ?, ?)'''
+        dbConnector.many_execution(query, purchases_list)
         dbConnector.update_goods_amount(goods_id, amount)
 
         self.tab_widget.setCurrentIndex(1)
@@ -595,7 +602,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def action_add_many_purchases(self):
         name, price,amount,date = self.window_add_many_purchases.get_field_data()
-        if amount > 10:
+        if amount > 100:
             self.draw_error_message('Можна додавати не більше 10 штук за раз')
         else:
             goods_id = self.get_goods_id(name)

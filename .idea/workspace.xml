@@ -1,21 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b4b70661-bde8-451d-a631-1f3d706b3ecd" name="Changes" comment="1. изменены таблицы и связи FK в них&#10;2. переписаны несколько методов под эти таблицы&#10;3.небольшой рефакторинг">
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="b4b70661-bde8-451d-a631-1f3d706b3ecd" name="Changes" comment="1. небольшие изменения по фронту&#10;2. добавлено контекстное меню по правому клику в тестовом режиме&#10;3. исправлено пару багов">
       <change afterPath="$PROJECT_DIR$/di4/settings/backups/2023-03-01_bampera.db" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/di4/settings/backups/2023-03-03_bampera.db" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/di4/settings/bampera.db" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/di4/settings/boot_config.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/di4/static/icons/delete.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/di4/static/icons/postal.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/di4/static/icons/purchasing.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/di4/static/icons/selling.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/di4/static/icons/trash.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tasks.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/di4/dbConnector.py" beforeDir="false" afterPath="$PROJECT_DIR$/di4/dbConnector.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/di4/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/di4/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/di4/static/style.css" beforeDir="false" afterPath="$PROJECT_DIR$/di4/static/style/style.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/di4/settings/bampera.db" beforeDir="false" afterPath="$PROJECT_DIR$/di4/settings/bampera.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/di4/settings/boot_config.txt" beforeDir="false" afterPath="$PROJECT_DIR$/di4/settings/boot_config.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -41,16 +34,17 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;F:/pyProj/di4/di4/static/icons&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "last_opened_file_path": "F:/pyProj/di4",
+    "settings.editor.selected.configurable": "preferences.pluginManager"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="F:\pyProj\di4" />
       <recent name="F:\pyProj\di4\di4\static\icons" />
       <recent name="F:\pyProj\di4\di4\settings" />
     </key>
@@ -82,6 +76,27 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="db_transporter" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="di4" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="F:\pyProj\di4\db_transporter.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="main (2)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="di4" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -95,27 +110,6 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/di4/main.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="main_root" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="di4" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main_root.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -169,10 +163,10 @@
     <recent_temporary>
       <list>
         <item itemvalue="Python.main (2)" />
-        <item itemvalue="Python.test" />
         <item itemvalue="Python.dbConnector" />
+        <item itemvalue="Python.test" />
+        <item itemvalue="Python.db_transporter" />
         <item itemvalue="Python.seql_templates" />
-        <item itemvalue="Python.main_root" />
       </list>
     </recent_temporary>
   </component>
@@ -234,7 +228,14 @@
       <option name="project" value="LOCAL" />
       <updated>1677854499823</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="1. небольшие изменения по фронту&#10;2. добавлено контекстное меню по правому клику в тестовом режиме&#10;3. исправлено пару багов">
+      <created>1678289644542</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1678289644542</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -256,15 +257,20 @@
     <MESSAGE value="1. доделан вывод статистики на виджет&#10;2. добавлен бекапер.нотупорылый пока" />
     <MESSAGE value="1. сброс на доделку" />
     <MESSAGE value="1. изменены таблицы и связи FK в них&#10;2. переписаны несколько методов под эти таблицы&#10;3.небольшой рефакторинг" />
-    <option name="LAST_COMMIT_MESSAGE" value="1. изменены таблицы и связи FK в них&#10;2. переписаны несколько методов под эти таблицы&#10;3.небольшой рефакторинг" />
+    <MESSAGE value="1. небольшие изменения по фронту&#10;2. добавлено контекстное меню по правому клику в тестовом режиме&#10;3. исправлено пару багов" />
+    <option name="LAST_COMMIT_MESSAGE" value="1. небольшие изменения по фронту&#10;2. добавлено контекстное меню по правому клику в тестовом режиме&#10;3. исправлено пару багов" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/di4/main.py</url>
-          <line>685</line>
+          <line>690</line>
           <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/di4/dbConnector.py</url>
+          <option name="timeStamp" value="2" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

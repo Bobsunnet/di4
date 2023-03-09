@@ -8,6 +8,25 @@ directory = os.path.dirname(__file__)
 
 DB_NAME = os.path.join(directory,f'settings/{DB_NAME}')
 
+def many_execution(query, data_arr:list):
+    with sq.connect(DB_NAME, timeout=10) as connection:
+        try:
+            cursor = connection.cursor()
+            cursor.execute('PRAGMA foreign_keys = ON;')
+            cursor.executemany(query, data_arr)
+            connection.commit()
+            return cursor.fetchall()
+
+        except sq.IntegrityError as integrity_error:
+            connection.rollback()
+            print(f'[ERROR] database problem: {integrity_error}')
+            return 'integrity_error', integrity_error
+
+        except Exception as ex:
+            connection.rollback()
+            print(f'[ERROR] database problem: {ex}')
+            return 'general_error', ex
+
 
 def general_execution(query):
     with sq.connect(DB_NAME, timeout=10) as connection:
@@ -99,10 +118,9 @@ purchase_summa = ''' SELECT sum(summa)
 
 
 if __name__ == '__main__':
-    quer = '''SELECT name, sell_price, orders.date
-        FROM orders JOIN goods ON goods.id = orders.goods_id'''
-    ins_goods='''INSERT INTO goods (name, amount) VALUES ("kek", 0)'''
-    ins_purch='''INSERT INTO purchase (goods_id, buy_price, date) VALUES (6, 20.5, '2023-03')'''
+    id_list = ((ids,) for ids in range(44,154))
 
-    print(general_execution(quer))
+    with sq.connect(DB_NAME, timeout=10) as conn1:
+        curs = conn1.cursor()
+        curs.executemany(f'''DELETE FROM {TABLE_PURCHASE} WHERE id = ?''', id_list)
 
