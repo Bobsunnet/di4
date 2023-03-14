@@ -24,7 +24,6 @@ with open(STYLES_PATH, 'r') as file:
     style = file.read()
 
 
-
 HEADERS_GOODS = ['Name', 'amount']
 HEADERS_ORDERS = ['Name', 'sell_price', 'date']
 HEADERS_PURCHASE = ['Name', 'buy_price', 'date']
@@ -69,8 +68,8 @@ class MyTableView(QtWidgets.QTableView):
         menu = QtWidgets.QMenu()
 
         # Add menu options
-        hello_option = menu.addAction('testing: add purchase')
-        goodbye_option = menu.addAction('testing: add order')
+        hello_option = menu.addAction('Add Purchase(in testing...)')
+        goodbye_option = menu.addAction('Add Order(in testing...)')
 
         # Menu option events
         hello_option.triggered.connect(mainWindow.btn_add_purchase_clicked)
@@ -155,6 +154,7 @@ class DataOperator:
     def __init__(self):
         self.cell_info = {}
         self.model_list:list = []
+        self.selected_rows_ids = None
 
     def get_cell_info(self, key:str):
         """ :param key: info type(index or model) """
@@ -256,11 +256,15 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # при нажатии на ячейку срабатывает ивентлуп
         self.table_view_goods.selectionModel().currentChanged.connect(self.cell_highlighted)
+        self.table_view_goods.selectionModel().selectionChanged.connect(self.items_selected)
         self.table_view_goods.horizontalHeader().setProperty('goods', True)
+
         self.table_view_purchase.selectionModel().currentChanged.connect(self.cell_highlighted)
-        self.table_view_purchase.selectionModel().selectionChanged.connect(self.debug_selection_test)
+        self.table_view_purchase.selectionModel().selectionChanged.connect(self.items_selected)
         self.table_view_purchase.horizontalHeader().setProperty('purchases', True)
+
         self.table_view_orders.selectionModel().currentChanged.connect(self.cell_highlighted)
+        self.table_view_orders.selectionModel().selectionChanged.connect(self.items_selected)
         self.table_view_orders.horizontalHeader().setProperty('orders', True)
 
     def widgets_setup(self):
@@ -401,12 +405,17 @@ class MainWindow(QtWidgets.QMainWindow):
 
 # _____________________________________ SIGNALS/ACTIONS ___________________________________________
     def debug_action(self):
-        print(self.get_row_id())
+        print('DEBUG IS EMPTY')
 
-    def debug_selection_test(self, current, previous):
-        for index in current.indexes():
-            print(index.row())
+    def debug_selection_test(self):
+        pass
 
+    def items_selected(self):
+        table = self.tab_widget.currentWidget()
+        selected_rows = table.selectionModel().selectedRows()
+        model = table.model()
+        rows_ids = (model.index(i.row(), 0).data() for i in selected_rows)
+        self.data_cash.selected_rows_ids = rows_ids
 
     def date_filter_pressed(self):
         self.date_filter_activate()
@@ -424,8 +433,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def btn_new_goods_clicked(self):
         self.action_add_new_goods()
-        self.refresh_table(0)
         self.tab_widget.setCurrentIndex(0)
+        self.refresh_table(0)
 
     def btn_add_many_purchases_clicked(self):
         update_goods_completer()
@@ -473,45 +482,46 @@ class MainWindow(QtWidgets.QMainWindow):
         self.draw_on_label_info()
 
     # ______________________________________ DELETING ___________________________________________
-
     def btn_delete_row_clicked(self):
-        row_id = self.get_row_id()
         current_table_index = self.tab_widget.currentIndex()
 
         try:
+            rows_ids = list(self.data_cash.selected_rows_ids)
             if current_table_index > 2:
                 raise MyExceptions.GeneralException('Видаляти можна тільки в перших трьох таблицях!\n'
                                                     'Це таблиця Статистики!')
-            if not row_id:
-                raise MyExceptions.GeneralException('Оберіть рядок для видалення')
-            self.delete_row(row_id,current_table_index)
+            if not rows_ids:
+                raise MyExceptions.GeneralException('Спочатку оберіть рядок для видалення(натисніть на номер рядка зліва)')
+            self.delete_many_rows(rows_ids, current_table_index)
 
         except Exception as ex:
             self.draw_error_message('Шось не то =(', exception=ex)
 
         self.data_cash.reset_cell_info()
 
-    def delete_row(self, row_id, table_index):
-        # TODO Очень коряво сделано удаление. продумать еще варианты
-
+    def delete_many_rows(self, rows_ids, table_index):
         if table_index != 0:
-            goods_id_query = f'''SELECT goods_id FROM {TABLE_NAMES_LIST[table_index]} WHERE id = {row_id}'''
+            goods_ids_query = f'''SELECT goods_id, COUNT(goods_id)
+                                  FROM {TABLE_NAMES_LIST[table_index]} 
+                                  WHERE id IN ({", ".join(list(map(str, rows_ids)))})
+                                  GROUP BY goods_id'''
+            goods_ids = dbConnector.general_execution(goods_ids_query)
 
-            goods_id = dbConnector.general_execution(goods_id_query)
             if table_index == 1:
-                if goods_id:
-                    dbConnector.update_goods_amount(goods_id[0][0], -1)
+                for row in goods_ids:
+                    dbConnector.update_goods_amount(row[0], -row[1])
             elif table_index == 2:
-                if goods_id:
-                    dbConnector.update_goods_amount(goods_id[0][0], 1)
-        res = dbConnector.delete_row(row_id, TABLE_NAMES_LIST[table_index])
+                for row in goods_ids:
+                    dbConnector.update_goods_amount(row[0], row[1])
+
+        rows_ids_iter = ((_id,) for _id in rows_ids)
+        res = dbConnector.many_execution(f'''DELETE FROM {TABLE_NAMES_LIST[table_index]} WHERE id = ?''', rows_ids_iter)
         if res:
             match res[0]:
                 case 'integrity_error':
                     self.draw_error_message('Не можна видаляти, поки є посилання на цей обьєкт в інших таблицях', res)
                 case 'general_error':
                     self.draw_error_message('Сталася якась помилка', res)
-
         self.refresh_table(table_index)
 
     # __________________________________ SLOTS _____________________________________________
@@ -567,7 +577,6 @@ class MainWindow(QtWidgets.QMainWindow):
         update_goods_completer()
         self.lnedit_finder.setCompleter(goods_completer)
 
-
     def refresh_table(self, table_index):
         if table_index <= 2:
             self.tab_widget.currentWidget().model().select()
@@ -584,7 +593,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 raise MyExceptions.GeneralException('Додавати потрібно з таблиці "goods"')
 
             goods_id = self.get_row_id()
-            print(goods_id)
             if not goods_id:
                 raise MyExceptions.GeneralException('Спочатку оберіть товар який хочете додати з таблиці "goods"')
             self.add_purchase(goods_id)
@@ -602,8 +610,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def action_add_many_purchases(self):
         name, price,amount,date = self.window_add_many_purchases.get_field_data()
-        if amount > 100:
-            self.draw_error_message('Можна додавати не більше 10 штук за раз')
+        if amount > 1000:
+            self.draw_error_message('Можна додавати не більше 1000 штук за раз')
         else:
             goods_id = self.get_goods_id(name)
             if goods_id:
@@ -659,6 +667,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.draw_error_message('Такого товару не знайдено =(', exception=ex)
 
     def get_row_id(self):
+        #todo херово написанный метод. не гибкий!!
         if self.get_active_cell_index():
             try:
                 cell_index_row = self.get_active_cell_index().row()

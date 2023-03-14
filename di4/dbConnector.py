@@ -65,9 +65,9 @@ def insert_into_orders(goods_id: int, sell_price: int | float = 0, date: datetim
     return general_execution(insert_query)
 
 
-def update_goods_amount(id:int, amount:int):
+def update_goods_amount(_id:int, amount:int):
     """ :param amount: if negative - than decrease the amount value """
-    update_query = f'''UPDATE {TABLE_GOODS} SET amount = amount + {amount} WHERE id = {id};'''
+    update_query = f'''UPDATE {TABLE_GOODS} SET amount = amount + {amount} WHERE id = {_id};'''
     return general_execution(update_query)
 
 
@@ -118,9 +118,13 @@ purchase_summa = ''' SELECT sum(summa)
 
 
 if __name__ == '__main__':
-    id_list = ((ids,) for ids in range(44,154))
+    id_list = ((ids,) for ids in range(163,167))
 
     with sq.connect(DB_NAME, timeout=10) as conn1:
         curs = conn1.cursor()
         curs.executemany(f'''DELETE FROM {TABLE_PURCHASE} WHERE id = ?''', id_list)
+
+    # # print(general_execution('SELECT id from purchase'))
+    # arr = [167, 164, 163]
+    # many_execution('''DELETE FROM purchase WHERE id = ?''', arr)
 
