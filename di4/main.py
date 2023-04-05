@@ -4,7 +4,6 @@ import sys
 
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QHeaderView
 
 from di4 import dbConnector
 from di4.settings import sql_pyqt
@@ -193,7 +192,7 @@ class MainWindow(QtWidgets.QMainWindow):
         tool_bar.setIconSize(QtCore.QSize(16,16))
         self.addToolBar(tool_bar)
 
-        self.act_debug = QtWidgets.QAction(QtGui.QIcon('static/icons/bug.png'), 'debug', self)
+        self.act_debug = QtWidgets.QAction(QtGui.QIcon(f'{BASEDIR}/static/icons/bug.png'), 'debug', self)
         self.act_debug.triggered.connect(self.debug_action)
         self.act_add_many_purchases = QtWidgets.QAction('Кілька закупок')
         #todo сделать отдельным потоком это действие
@@ -254,6 +253,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.table_view_stat.setObjectName('table_view_stat')
         self.table_view_stat.horizontalHeader().setSectionResizeMode(1)
 
+        self.table_view_debug = QtWidgets.QTableView()
+        self.table_view_debug.setObjectName('table_view_debug')
+        self.table_view_debug.horizontalHeader().setSectionResizeMode(1)
+
         # при нажатии на ячейку срабатывает ивентлуп
         self.table_view_goods.selectionModel().currentChanged.connect(self.cell_highlighted)
         self.table_view_goods.selectionModel().selectionChanged.connect(self.items_selected)
@@ -271,7 +274,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # ____________________________________ TAB WIDGET SETUP _________________________
         self.tab_widget = QtWidgets.QTabWidget()
         tab_widgets_list = [self.table_view_goods, self.table_view_purchase, self.table_view_orders,
-                            self.table_view_stat]
+                            self.table_view_stat, self.table_view_debug]
         for widg in tab_widgets_list:
             self.tab_widget.addTab(widg, widg.objectName()[11:].capitalize())
         self.tab_widget.currentChanged.connect(self.tab_changed)
@@ -288,25 +291,25 @@ class MainWindow(QtWidgets.QMainWindow):
         self.lnedit_finder.setMaximumWidth(500)
 
         self.btn_new_goods = QtWidgets.QPushButton()
-        self.btn_new_goods.setIcon(QtGui.QIcon('static/icons/postal.png'))
+        self.btn_new_goods.setIcon(QtGui.QIcon(f'{BASEDIR}/static/icons/postal.png'))
         self.btn_new_goods.setObjectName('new_goods')
         self.btn_new_goods.setText('Додати Товар')
         self.btn_new_goods.clicked.connect(self.btn_new_goods_clicked)
 
         self.btn_new_purchase = QtWidgets.QPushButton()
-        self.btn_new_purchase.setIcon(QtGui.QIcon('static/icons/purchasing.png'))
+        self.btn_new_purchase.setIcon(QtGui.QIcon(f'{BASEDIR}/static/icons/purchasing.png'))
         self.btn_new_purchase.setObjectName('new_purchase')
         self.btn_new_purchase.setText('Додати Закупку')
         self.btn_new_purchase.clicked.connect(self.btn_add_purchase_clicked)
 
         self.btn_new_order = QtWidgets.QPushButton()
-        self.btn_new_order.setIcon(QtGui.QIcon('static/icons/selling.png'))
+        self.btn_new_order.setIcon(QtGui.QIcon(f'{BASEDIR}/static/icons/selling.png'))
         self.btn_new_order.setObjectName('new_order')
         self.btn_new_order.setText('Додати продажу')
         self.btn_new_order.clicked.connect(self.btn_add_order_clicked)
 
         self.btn_delete_row = QtWidgets.QPushButton()
-        self.btn_delete_row.setIcon(QtGui.QIcon('static/icons/trash.png'))
+        self.btn_delete_row.setIcon(QtGui.QIcon(f'{BASEDIR}/static/icons/trash.png'))
         self.btn_delete_row.setObjectName('delete_row')
         self.btn_delete_row.setText('Видалити')
         self.btn_delete_row.clicked.connect(self.btn_delete_row_clicked)
