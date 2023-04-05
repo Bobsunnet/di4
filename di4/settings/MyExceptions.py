@@ -1,15 +1,9 @@
-
-#todo сделать нормальные исключения
 class GeneralException(Exception):
-    pass
-
-
-class ModelNotFound(GeneralException):
-    pass
+    """Общее исключение программы"""
 
 
 class InvalidDataField(GeneralException):
-    pass
+    """Исключение при неправильном заполнении поля"""
 
 
 if __name__ == '__main__':

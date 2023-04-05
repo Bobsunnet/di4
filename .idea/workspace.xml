@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="db8a78d0-5e6d-4089-8f79-f27ede870314" name="Changes" comment="1. изменен механизм удаления из таблиц&#10;2. добавлена возможность удалять множественные строки таблицы">
+    <list default="true" id="db8a78d0-5e6d-4089-8f79-f27ede870314" name="Changes" comment="beta_1.01&#10;01.1 убрано увеличение на складе при добавлении закупки&#10;01.2 изменено отображение таблицы статистики общей">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/di4/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/di4/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/di4/settings/Constants.py" beforeDir="false" afterPath="$PROJECT_DIR$/di4/settings/Constants.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/di4/settings/MyExceptions.py" beforeDir="false" afterPath="$PROJECT_DIR$/di4/settings/MyExceptions.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/di4/settings/bampera.db" beforeDir="false" afterPath="$PROJECT_DIR$/di4/settings/bampera.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/di4/settings/functors.py" beforeDir="false" afterPath="$PROJECT_DIR$/di4/settings/functors.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tasks.txt" beforeDir="false" afterPath="$PROJECT_DIR$/tasks.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -15,7 +18,21 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="2O142ScF0pRMdjBRACqSu1zloxi" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true"
+  }
+}]]></component>
   <component name="RunManager" selected="Python.main">
     <configuration name="MyExceptions" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="di4" />
@@ -30,6 +47,27 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/di4/settings/MyExceptions.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="functors" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="di4" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/di4/settings" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/di4/settings/functors.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -62,11 +100,28 @@
     <recent_temporary>
       <list>
         <item itemvalue="Python.main" />
+        <item itemvalue="Python.functors" />
         <item itemvalue="Python.MyExceptions" />
       </list>
     </recent_temporary>
   </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
+    <task id="LOCAL-00001" summary="слияние тестовой ветки в main">
+      <created>1680686169692</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1680686169692</updated>
+    </task>
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="db8a78d0-5e6d-4089-8f79-f27ede870314" name="Changes" comment="beta_1.01&#10;01.1 убрано увеличение на складе при добавлении закупки&#10;01.2 изменено отображение таблицы статистики общей" />
+      <created>1680714548576</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1680714548576</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -80,12 +135,16 @@
       </map>
     </option>
   </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="слияние тестовой ветки в main" />
+    <option name="LAST_COMMIT_MESSAGE" value="слияние тестовой ветки в main" />
+  </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/di4/main.py</url>
-          <line>710</line>
+          <line>758</line>
           <option name="timeStamp" value="2" />
         </line-breakpoint>
       </breakpoints>

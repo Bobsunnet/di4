@@ -9,9 +9,10 @@ from di4 import dbConnector
 from di4.settings import sql_pyqt
 from di4.settings.Constants import (VALIDATOR_DIGITS,
                                     BASE_TOTAL_PURCHASES,
-                                    BASE_TOTAL_ORDERS)
+                                    BASE_TOTAL_ORDERS,
+                                    AVG_PROFIT_STAT_TEMPLATE)
 from di4.settings import MyExceptions
-from di4.settings.functors import QueryMaker, QueryMakerGroup
+from di4.settings.functors import QueryMaker, QueryMakerGroup, QueryMakerTemplate
 from di4.settings.backuper import write_backup
 
 write_backup()
@@ -135,13 +136,14 @@ class AddWidget(QtWidgets.QWidget):
         self.combox_goods_names.setCompleter(goods_completer)
 
     def get_field_data(self):
-        '''
+        """ Возвращает данные с полей окна "Add_many_Purchase"
         :return: goods_name, price, amount, date
-        '''
+        """
+
         goods_name = self.combox_goods_names.currentText()
         date = self.field_date.text()
         amount_field = self.field_amount.text()
-        if not isinstance(amount_field, int):
+        if not amount_field:
             raise MyExceptions.InvalidDataField('Невірно заповнене поле')
         amount = int(amount_field)
         price = float(self.field_price.text()) if self.field_price.text() else 0
@@ -240,12 +242,16 @@ class MainWindow(QtWidgets.QMainWindow):
         self.orders_query.set_ORDER_BY_fields('orders.id', ascending=False)
 
         self.purchase_query_grouped = QueryMakerGroup('purchase', 'goods.id', BASE_TOTAL_PURCHASES)
-        self.purchase_query_grouped.set_WHERE_fields({'purchase.date': '2023-03', 'name': ''})
+        self.purchase_query_grouped.set_WHERE_fields({'purchase.date': INIT_NOW_MONTH, 'name': ''})
         self.purchase_query_grouped.set_ORDER_BY_fields('name')
 
         self.orders_query_grouped = QueryMakerGroup('orders', 'goods.name', BASE_TOTAL_ORDERS)
-        self.orders_query_grouped.set_WHERE_fields({'name': '', 'orders.date': '2023-03'})
+        self.orders_query_grouped.set_WHERE_fields({'name': '', 'orders.date': INIT_NOW_MONTH})
         self.orders_query_grouped.set_ORDER_BY_fields('name')
+
+        self.profit_query = QueryMakerTemplate(AVG_PROFIT_STAT_TEMPLATE)
+        self.profit_query.set_WHERE_fields({'name': '', 'date': INIT_NOW_MONTH})
+
 
     def table_view_setup(self):
         self.create_table_view(getattr(self,'model_goods'), 'table_view_goods')
@@ -324,8 +330,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.btn_statistics_order = QtWidgets.QPushButton()
         self.btn_statistics_order.setText('Статистика Продажів')
-
         self.btn_statistics_order.clicked.connect(self.btn_statistics_order_clicked)
+
+        self.btn_statistics_profit = QtWidgets.QPushButton()
+        self.btn_statistics_profit.setText('Статистика Прибутку')
+        self.btn_statistics_profit.clicked.connect(self.btn_statistics_profit_clicked)
 
         # __________________________________TEXT_LAYER_________________________
         self.label_info = QtWidgets.QLabel()
@@ -354,6 +363,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.lbl_quick_stat_sell.setProperty('LabelStat', True)
         self.lbl_quick_stat_sell.setObjectName('stat_sell')
         self.lbl_quick_stat_sell.setText('sell_total: \n__ ')
+
+        self.lbl_quick_stat_profit = QtWidgets.QLabel()
+        self.lbl_quick_stat_profit.setProperty('LabelStat', True)
+        self.lbl_quick_stat_profit.setObjectName('stat_profit')
+        self.lbl_quick_stat_profit.setText('profit_total: \n__ ')
 
         # ____________________________________ MODELS _________________________________
         self.model_purchase.setRelation(1, sql_pyqt.QSqlRelation("goods", 'id', 'name'))
@@ -385,10 +399,15 @@ class MainWindow(QtWidgets.QMainWindow):
         stats_sell_layout.addWidget(self.btn_statistics_order, 3)
         stats_sell_layout.addWidget(self.lbl_quick_stat_sell,7)
 
+        stats_profit_layout = QtWidgets.QVBoxLayout()
+        stats_profit_layout.addWidget(self.btn_statistics_profit, 3)
+        stats_profit_layout.addWidget(self.lbl_quick_stat_profit, 7)
+
         properties_layout.addLayout(label_date_layout)
         properties_layout.addSpacing(500)
         properties_layout.addLayout(stats_buy_layout)
         properties_layout.addLayout(stats_sell_layout)
+        properties_layout.addLayout(stats_profit_layout)
 
         # ________________________________MAIN_LAYOUT___________________________________________
         top_layout_widget = QtWidgets.QWidget()
@@ -443,13 +462,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.refresh_table(0)
 
     def btn_add_many_purchases_clicked(self):
+        """ Открывает окно добавление нескольких закупок """
         update_goods_completer()
         self.window_add_many_purchases.update_combobox_names()
         self.window_add_many_purchases.refresh_completer()
         self.window_add_many_purchases.show()
 
     def btn_statistics_purchase_clicked(self):
-        self.update_name_filters()
+        """ Рассчитывает и отображает таблицу статистики по закупкам """
+        self.update_name_filters() # обновляем фильтры имени
         if self.checkbox_date_filter.isChecked():
             query = self.purchase_query_grouped.get_full_query_grouped('purchase.date', 'name')
         else:
@@ -466,6 +487,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.show_stat_table(query)
         self.calculate_statistic_sell(query)
 
+    def btn_statistics_profit_clicked(self):
+        self.update_name_filters()
+        if self.checkbox_date_filter.isChecked():
+            query = self.profit_query.get_full_query('date', 'name')
+        else:
+            query = self.profit_query.get_full_query('name')
+        self.show_stat_table(query)
+        self.calculate_statistic_profit(query)
+
     def calculate_statistic_buy(self, query_inner):
         query = f'''SELECT SUM(buy_total) FROM ({query_inner[:-1]})'''
         res = dbConnector.general_execution(query)
@@ -476,6 +506,12 @@ class MainWindow(QtWidgets.QMainWindow):
         res = dbConnector.general_execution(query)
         self.draw_quick_stat_sell(res[0][0])
 
+    def calculate_statistic_profit(self, query_inner):
+        query = f'''SELECT SUM(total_profit) FROM ({query_inner[:-1]})'''
+        res = dbConnector.general_execution(query)
+        # res =[['EMPTY RESULT']]
+        self.draw_quick_stat_profit(res[0][0])
+
     def tab_changed(self, i):
         self.data_cash.reset_cell_info()
         self.refresh_completer()
@@ -484,6 +520,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.draw_on_label_info()
 
     def cell_highlighted(self, current):
+        """ Срабатывает когда выделяется ячейка таблицы"""
         self.data_cash.set_cell_info(current, self.tab_widget.currentWidget().model())
         self.draw_on_label_info()
 
@@ -547,6 +584,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def draw_quick_stat_buy(self, text):
         self.lbl_quick_stat_buy.setText(f'buy_total: \n{text}')
 
+    def draw_quick_stat_profit(self, text):
+        self.lbl_quick_stat_profit.setText(f'total_avg_profit: \n{int(text)}')
+
     def activate_filter_goods(self):
         self.model_goods.setFilter(self.goods_query.get_WHERE_filter('name'))
 
@@ -570,6 +610,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.orders_query.set_WHERE_fields({'name': name})
         self.purchase_query_grouped.set_WHERE_fields({'name':name})
         self.orders_query_grouped.set_WHERE_fields({'name':name})
+        self.profit_query.set_WHERE_fields({'name':name})
 
     def update_date_filters(self):
         # TODO тоже отрефакторить через цикл
@@ -578,6 +619,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.purchase_query.set_WHERE_fields({'purchase.date': date})
         self.purchase_query_grouped.set_WHERE_fields({'purchase.date': date})
         self.orders_query_grouped.set_WHERE_fields({'orders.date': date})
+        self.profit_query.set_WHERE_fields({'date': date})
 
     def refresh_completer(self):
         update_goods_completer()
@@ -605,16 +647,20 @@ class MainWindow(QtWidgets.QMainWindow):
         except Exception as ex:
             self.draw_error_message('Помилка роботи з таблицею', exception=ex)
 
-    def add_purchase(self, goods_id: int, amount: int = 1, price: int | float = 0, date=INIT_NOW_MONTH):
+    def add_purchase(self, goods_id: int, amount: int = 1, price: int | float = 0, date=INIT_NOW_DAY):
+        """Добавляет запись в таблицу покупок"""
         purchases_list = [(goods_id, price, date) for _ in range(amount)]
         query = f'''INSERT INTO {dbConnector.TABLE_PURCHASE} VALUES (NULL, ?, ?, ?)'''
         dbConnector.many_execution(query, purchases_list)
-        dbConnector.update_goods_amount(goods_id, amount)
+
+        # !!! временно отключено автоувеличение запасов на складе после покупки !!!
+        # dbConnector.update_goods_amount(goods_id, amount)
 
         self.tab_widget.setCurrentIndex(1)
         self.refresh_table(1)
 
     def action_add_many_purchases(self):
+        """Добавляет несколько записей в таблицу покупок"""
         try:
             name, price,amount,date = self.window_add_many_purchases.get_field_data()
             if amount > 1000:
@@ -636,7 +682,7 @@ class MainWindow(QtWidgets.QMainWindow):
         except Exception as ex:
             self.draw_error_message('Помилка роботи з таблицею', exception=ex)
 
-    def add_order(self, goods_id: int, amount: int = 1, price: int | float = 0, date=INIT_NOW_MONTH):
+    def add_order(self, goods_id: int, amount: int = 1, price: int | float = 0, date=INIT_NOW_DAY):
         for i in range(amount):
             dbConnector.insert_into_orders(goods_id, price, date)
         dbConnector.update_goods_amount(goods_id, -amount)
@@ -644,6 +690,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tab_widget.setCurrentIndex(2)
 
     def show_stat_table(self, base_query):
+        """ Создает модель на основе SQL запроса и отображает ее в таблице"""
         query = sql_pyqt.QSqlQuery(base_query, db=sql_pyqt.db)
         model = sql_pyqt.QSqlQueryModel()
         model.setQuery(query)
@@ -677,6 +724,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def get_row_id(self):
         #todo херово написанный метод. не гибкий!!
+        """ Возвращает индекс в модели выделенной ячейки таблицы"""
         if self.get_active_cell_index():
             try:
                 cell_index_row = self.get_active_cell_index().row()
