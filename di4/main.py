@@ -140,7 +140,10 @@ class AddWidget(QtWidgets.QWidget):
         '''
         goods_name = self.combox_goods_names.currentText()
         date = self.field_date.text()
-        amount = int(self.field_amount.text())
+        amount_field = self.field_amount.text()
+        if not isinstance(amount_field, int):
+            raise MyExceptions.InvalidDataField('Невірно заповнене поле')
+        amount = int(amount_field)
         price = float(self.field_price.text()) if self.field_price.text() else 0
         return goods_name, price, amount, date
 
@@ -612,13 +615,16 @@ class MainWindow(QtWidgets.QMainWindow):
         self.refresh_table(1)
 
     def action_add_many_purchases(self):
-        name, price,amount,date = self.window_add_many_purchases.get_field_data()
-        if amount > 1000:
-            self.draw_error_message('Можна додавати не більше 1000 штук за раз')
-        else:
-            goods_id = self.get_goods_id(name)
-            if goods_id:
-                self.add_purchase(goods_id,amount,price,date)
+        try:
+            name, price,amount,date = self.window_add_many_purchases.get_field_data()
+            if amount > 1000:
+                self.draw_error_message('Можна додавати не більше 1000 штук за раз')
+            else:
+                goods_id = self.get_goods_id(name)
+                if goods_id:
+                    self.add_purchase(goods_id,amount,price,date)
+        except MyExceptions.InvalidDataField as ex:
+            self.draw_error_message('Невірно вказані дані', ex)
 
     # _________________________________ ADD ORDER _____________________________________
     def btn_add_order_clicked(self):
