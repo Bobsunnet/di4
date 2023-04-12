@@ -30,7 +30,7 @@ class SqlExecutor:
 
 class Goods:
     table = 'goods'
-    session = SqlExecutor('bampera.db')
+    session = SqlExecutor('bampera_test.db')
     fields = ['id', 'name', 'amount']
 
     def __init__(self, field=None, value=None):

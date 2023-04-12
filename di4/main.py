@@ -2,8 +2,8 @@ import os
 import re
 import sys
 
-from PyQt5 import QtWidgets, QtCore, QtGui
-from PyQt5.QtCore import Qt
+from PyQt5 import QtWidgets, QtCore, QtGui, QtSql
+from PyQt5.QtCore import Qt, QSortFilterProxyModel
 
 from di4 import dbConnector
 from di4.settings import sql_pyqt
@@ -12,7 +12,7 @@ from di4.settings.Constants import (VALIDATOR_DIGITS,
                                     BASE_TOTAL_ORDERS,
                                     AVG_PROFIT_STAT_TEMPLATE)
 from di4.settings import MyExceptions
-from di4.settings.functors import QueryMaker, QueryMakerGroup, QueryMakerTemplate
+from di4.settings.querymaker import QueryMaker, QueryMakerGroup, QueryMakerTemplate
 from di4.settings.backuper import write_backup
 
 write_backup()
@@ -63,6 +63,7 @@ class MyTableView(QtWidgets.QTableView):
 
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.right_menu)
+
 
     def right_menu(self, pos):
         menu = QtWidgets.QMenu()
@@ -137,9 +138,7 @@ class AddWidget(QtWidgets.QWidget):
 
     def get_field_data(self):
         """ Возвращает данные с полей окна "Add_many_Purchase"
-        :return: goods_name, price, amount, date
-        """
-
+        :return: goods_name, price, amount, date """
         goods_name = self.combox_goods_names.currentText()
         date = self.field_date.text()
         amount_field = self.field_amount.text()
@@ -159,6 +158,7 @@ class DataOperator:
         self.cell_info = {}
         self.model_list:list = []
         self.selected_rows_ids = None
+        self.active_model_info ={'sorted_asc':False, 'sorted_column':None, 'active_model':None}
 
     def get_cell_info(self, key:str):
         """ :param key: info type(index or model) """
@@ -172,6 +172,12 @@ class DataOperator:
         self.cell_info['index'] = None
         self.cell_info['model'] = None
 
+    def set_active_model(self, model):
+        self.active_model_info['active_model'] = model
+
+    def get_active_model(self):
+        return self.active_model_info['active_model']
+
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -183,14 +189,16 @@ class MainWindow(QtWidgets.QMainWindow):
         self.query_makers_setup()
         self.data_cash = DataOperator()
 
-        self.model_create(dbConnector.TABLE_GOODS, HEADERS_GOODS, 'model_goods')
-        self.model_create(dbConnector.TABLE_PURCHASE, HEADERS_PURCHASE, 'model_purchase')
-        self.model_create(dbConnector.TABLE_ORDERS, HEADERS_ORDERS, 'model_orders')
+        self.model_init(dbConnector.TABLE_GOODS, HEADERS_GOODS, 'model_goods')
+        self.model_init(dbConnector.TABLE_PURCHASE, HEADERS_PURCHASE, 'model_purchase')
+        self.model_init(dbConnector.TABLE_ORDERS, HEADERS_ORDERS, 'model_orders')
 
         self.table_view_setup()
         self.widgets_setup()
         self.layout_setup()
         self.tool_bar_setup()
+
+        self.set_active_model()
 
     def tool_bar_setup(self):
         tool_bar = QtWidgets.QToolBar('Main toolbar')
@@ -207,7 +215,7 @@ class MainWindow(QtWidgets.QMainWindow):
         tool_bar.addSeparator()
         tool_bar.addAction(self.act_add_many_purchases)
 
-    def model_create(self, table:str, headers:list, model_name:str):
+    def model_init(self, table:str, headers:list, model_name:str):
         model = sql_pyqt.QSqlRelationalTableModel(db=sql_pyqt.db)
         model.setTable(table)
         model.setEditStrategy(sql_pyqt.QSqlTableModel.EditStrategy.OnFieldChange)
@@ -261,23 +269,28 @@ class MainWindow(QtWidgets.QMainWindow):
         self.table_view_stat = QtWidgets.QTableView()
         self.table_view_stat.setObjectName('table_view_stat')
         self.table_view_stat.horizontalHeader().setSectionResizeMode(1)
+        self.table_view_stat.horizontalHeader().sectionDoubleClicked.connect(self.sorting_double_clicked)
 
         self.table_view_debug = QtWidgets.QTableView()
         self.table_view_debug.setObjectName('table_view_debug')
-        self.table_view_debug.horizontalHeader().setSectionResizeMode(1)
+        self.table_view_debug.horizontalHeader().setSectionResizeMode(3)
+        self.table_view_debug.horizontalHeader().sectionDoubleClicked.connect(self.sorting_double_clicked)
 
         # при нажатии на ячейку срабатывает ивентлуп
         self.table_view_goods.selectionModel().currentChanged.connect(self.cell_highlighted)
         self.table_view_goods.selectionModel().selectionChanged.connect(self.items_selected)
         self.table_view_goods.horizontalHeader().setProperty('goods', True)
+        self.table_view_goods.horizontalHeader().sectionDoubleClicked.connect(self.sorting_double_clicked)
 
         self.table_view_purchase.selectionModel().currentChanged.connect(self.cell_highlighted)
         self.table_view_purchase.selectionModel().selectionChanged.connect(self.items_selected)
         self.table_view_purchase.horizontalHeader().setProperty('purchases', True)
+        self.table_view_purchase.horizontalHeader().sectionDoubleClicked.connect(self.sorting_double_clicked)
 
         self.table_view_orders.selectionModel().currentChanged.connect(self.cell_highlighted)
         self.table_view_orders.selectionModel().selectionChanged.connect(self.items_selected)
         self.table_view_orders.horizontalHeader().setProperty('orders', True)
+        self.table_view_orders.horizontalHeader().sectionDoubleClicked.connect(self.sorting_double_clicked)
 
     def widgets_setup(self):
         # ____________________________________ TAB WIDGET SETUP _________________________
@@ -432,6 +445,21 @@ class MainWindow(QtWidgets.QMainWindow):
     def debug_action(self):
         print('DEBUG IS EMPTY')
 
+    def sorting_double_clicked(self, col):
+        """Сортирует по двойному клику на колонке"""
+        model = self.data_cash.get_active_model()
+        if not self.data_cash.active_model_info['sorted_asc'] or self.data_cash.active_model_info['sorted_column'] != col:
+            model.sort(col, Qt.AscendingOrder)
+            self.data_cash.active_model_info['sorted_asc'] = True
+        else:
+            model.sort(col, Qt.DescendingOrder)
+            self.data_cash.active_model_info['sorted_asc'] = False
+        self.data_cash.active_model_info['sorted_column'] = col
+
+    def set_active_model(self):
+        active_model = self.tab_widget.currentWidget().model()
+        self.data_cash.set_active_model(active_model)
+
     def debug_selection_test(self):
         pass
 
@@ -477,6 +505,7 @@ class MainWindow(QtWidgets.QMainWindow):
             query = self.purchase_query_grouped.get_full_query_grouped('name')
         self.show_stat_table(query)
         self.calculate_statistic_buy(query)
+        self.rename_tab(3, 'Purchases stat')
 
     def btn_statistics_order_clicked(self):
         self.update_name_filters()
@@ -486,6 +515,7 @@ class MainWindow(QtWidgets.QMainWindow):
             query = self.orders_query_grouped.get_full_query_grouped('name')
         self.show_stat_table(query)
         self.calculate_statistic_sell(query)
+        self.rename_tab(3, 'Sells stat')
 
     def btn_statistics_profit_clicked(self):
         self.update_name_filters()
@@ -495,6 +525,7 @@ class MainWindow(QtWidgets.QMainWindow):
             query = self.profit_query.get_full_query('name')
         self.show_stat_table(query)
         self.calculate_statistic_profit(query)
+        self.rename_tab(3, 'Profit stat')
 
     def calculate_statistic_buy(self, query_inner):
         query = f'''SELECT SUM(buy_total) FROM ({query_inner[:-1]})'''
@@ -502,22 +533,24 @@ class MainWindow(QtWidgets.QMainWindow):
         self.draw_quick_stat_buy(res[0][0])
 
     def calculate_statistic_sell(self, query_inner):
-        query = f'''SELECT SUM(sell_total) FROM ({query_inner[:-1]})'''
+        query = f'''SELECT SUM(sell_total) FROM ({query_inner})'''
         res = dbConnector.general_execution(query)
         self.draw_quick_stat_sell(res[0][0])
 
     def calculate_statistic_profit(self, query_inner):
-        query = f'''SELECT SUM(total_profit) FROM ({query_inner[:-1]})'''
+        query = f'''SELECT SUM(total_profit) FROM ({query_inner})'''
         res = dbConnector.general_execution(query)
-        # res =[['EMPTY RESULT']]
+        self.draw_quick_stat_profit(res[0][0])
         self.draw_quick_stat_profit(res[0][0])
 
     def tab_changed(self, i):
         self.data_cash.reset_cell_info()
         self.refresh_completer()
         self.activate_filter()
+        self.set_active_model()
         self.refresh_table(i)
         self.draw_on_label_info()
+
 
     def cell_highlighted(self, current):
         """ Срабатывает когда выделяется ячейка таблицы"""
@@ -568,6 +601,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.refresh_table(table_index)
 
     # __________________________________ SLOTS _____________________________________________
+    def rename_tab(self, index:int, name:str):
+        self.tab_widget.setTabText(index, name)
+
     def activate_filter(self):
         # TODO избавиться от ветвления через if/else
         table_index = self.tab_widget.currentIndex()
@@ -585,7 +621,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.lbl_quick_stat_buy.setText(f'buy_total: \n{text}')
 
     def draw_quick_stat_profit(self, text):
-        self.lbl_quick_stat_profit.setText(f'total_avg_profit: \n{int(text)}')
+        self.lbl_quick_stat_profit.setText(f'total_avg_profit: \n{text}')
 
     def activate_filter_goods(self):
         self.model_goods.setFilter(self.goods_query.get_WHERE_filter('name'))
@@ -694,8 +730,12 @@ class MainWindow(QtWidgets.QMainWindow):
         query = sql_pyqt.QSqlQuery(base_query, db=sql_pyqt.db)
         model = sql_pyqt.QSqlQueryModel()
         model.setQuery(query)
-        self.table_view_stat.setModel(model)
+        proxy_model = QSortFilterProxyModel()  # прокси модель нужна для сортировки
+        proxy_model.setSourceModel(model)
+
+        self.table_view_stat.setModel(proxy_model)
         self.tab_widget.setCurrentIndex(3)
+        self.set_active_model()
 
     def edit_order_cell(self, db_func, value):
         try:
@@ -724,18 +764,20 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def get_row_id(self):
         #todo херово написанный метод. не гибкий!!
-        """ Возвращает индекс в модели выделенной ячейки таблицы"""
+        """ Возвращает индекс поля БД выделенной ячейки таблицы"""
         if self.get_active_cell_index():
             try:
                 cell_index_row = self.get_active_cell_index().row()
                 model = self.get_active_cell_model()
                 row_id = model.index(cell_index_row, 0).data()
                 return row_id
+
             except Exception as ex:
                 print(ex)
 
     @staticmethod
     def make_safe_filter_string(text):
+        """Переделывает строку для избежания SQL-инъекций"""
         text_safe = re.sub(r'\"+', '', text.strip())
         return text_safe
 

@@ -43,7 +43,7 @@ class QueryMaker:
         where_filter = f"WHERE {self.get_WHERE_filter(*where)}" if where else ''
         order_filter = self.get_ORDER_BY_fields() if ordered else ''
         limit_filter = f'LIMIT {limit}' if limit else ''
-        return f'{self.head_query} {where_filter} {order_filter} {limit_filter};'
+        return f'{self.head_query} {where_filter} {order_filter} {limit_filter}'
 
     def set_head_query(self, query):
         self.head_query = spaces_removal(query)
@@ -59,7 +59,7 @@ class QueryMakerGroup(QueryMaker):
         group_filter = f'GROUP BY {self.group_by}'
         order_filter = self.get_ORDER_BY_fields() if ordered else ''
         limit_filter = f'LIMIT {limit}' if limit else ''
-        return f'{self.head_query} {where_filter} {group_filter} {order_filter} {limit_filter};'
+        return f'{self.head_query} {where_filter} {group_filter} {order_filter} {limit_filter}'
 
 
 class QueryMakerTemplate:
@@ -99,27 +99,7 @@ if __name__ == '__main__':
     # purchase_query_stat.set_WHERE_fields({'purchase.date': '2023-03', 'name': ''})
     # purchase_query_stat.set_ORDER_BY_fields('name')
     # print(purchase_query_stat.get_full_query_grouped('purchase.date'))
-    temp_query = '''
-                SELECT purchase_avg.name, 
-                price_buy_avg,
-                price_sell_avg,
-                (price_sell_avg - price_buy_avg) as avg_profit,
-                (price_sell_avg - price_buy_avg)*orders_avg.amount as total_profit
-                FROM (SELECT name,
-                      ROUND(AVG(buy_price), 2) as price_buy_avg
-                      FROM purchase 
-                      JOIN goods ON purchase.goods_id = goods.id
-                      {{ WHERE_STATEMENT }}
-                      GROUP BY purchase.goods_id) purchase_avg
-                JOIN goods ON goods.name = purchase_avg.name
-                JOIN (SELECT name,
-                      ROUND(AVG(sell_price), 2) as price_sell_avg,
-                      COUNT(name) as amount
-                      FROM orders
-                      JOIN goods ON orders.goods_id = goods.id
-                      {{ WHERE_STATEMENT }}
-                      GROUP BY orders.goods_id) orders_avg ON orders_avg.name = goods.name
-             '''
+    temp_query = const.AVG_PROFIT_STAT_TEMPLATE
     q_m_templ = QueryMakerTemplate(temp_query)
     q_m_templ.set_WHERE_fields({'name':'e60', 'date':'2023-04'})
     print(q_m_templ.get_full_query('name', 'date'))

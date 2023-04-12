@@ -1,12 +1,11 @@
 import os
 import sqlite3 as sq
-from datetime import datetime
 from di4.settings.Constants import *
 
-NOW_DATE = datetime.utcnow().date()
-directory = os.path.dirname(__file__)
 
+directory = os.path.dirname(__file__)
 DB_NAME = os.path.join(directory,f'settings/{DB_NAME}')
+
 
 def many_execution(query, data_arr:list):
     with sq.connect(DB_NAME, timeout=10) as connection:
@@ -109,22 +108,6 @@ def select_goods_id(name):
     return general_execution(sel_query)
 
 
-purchase_summa = ''' SELECT sum(summa)
-        FROM (SELECT SUM(buy_price) as summa
-        FROM purchase 
-        JOIN goods ON purchase.goods_id = goods.id
-        WHERE purchase.date LIKE "%2023-03%" 
-        GROUP BY goods_id);'''
-
-
 if __name__ == '__main__':
-    id_list = ((ids,) for ids in range(163,167))
-
-    with sq.connect(DB_NAME, timeout=10) as conn1:
-        curs = conn1.cursor()
-        curs.executemany(f'''DELETE FROM {TABLE_PURCHASE} WHERE id = ?''', id_list)
-
-    # # print(general_execution('SELECT id from purchase'))
-    # arr = [167, 164, 163]
-    # many_execution('''DELETE FROM purchase WHERE id = ?''', arr)
+    get_former_date(30)
 
