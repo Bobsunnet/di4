@@ -1,22 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="db8a78d0-5e6d-4089-8f79-f27ede870314" name="Changes" comment="beta_1.02&#10;02.1 средняя цена закупки теперь считается за последние два месяца&#10;02.2 добавлена сортировка по двойному клику(не работает в статистике)&#10;02.3 &#10;02.4">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+    <list default="true" id="db8a78d0-5e6d-4089-8f79-f27ede870314" name="Changes" comment="beta_1.02&#10;02.1 средняя цена закупки теперь считается за последние два месяца&#10;02.2 добавлена сортировка по двойному клику на колонку в таблице">
+      <change afterPath="$PROJECT_DIR$/di4/MyWidgets.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/di4/Utils.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/di4/dbConnector.py" beforeDir="false" afterPath="$PROJECT_DIR$/di4/dbConnector.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/di4/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/di4/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/di4/settings/Constants.py" beforeDir="false" afterPath="$PROJECT_DIR$/di4/settings/Constants.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/di4/settings/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/di4/settings/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/di4/settings/bampera.db" beforeDir="false" afterPath="$PROJECT_DIR$/di4/settings/bampera_test.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/di4/settings/boot_config.txt" beforeDir="false" afterPath="$PROJECT_DIR$/di4/settings/boot_config.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/di4/settings/functors.py" beforeDir="false" afterPath="$PROJECT_DIR$/di4/settings/querymaker.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/di4/settings/seql_templates.py" beforeDir="false" afterPath="$PROJECT_DIR$/di4/settings/seql_templates.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/di4/settings/MyExceptions.py" beforeDir="false" afterPath="$PROJECT_DIR$/di4/settings/MyExceptions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/di4/settings/backuper.py" beforeDir="false" afterPath="$PROJECT_DIR$/di4/settings/backuper.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/di4/settings/boot_config.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/di4/settings/querymaker.py" beforeDir="false" afterPath="$PROJECT_DIR$/di4/settings/querymaker.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main_root.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_root.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -33,11 +44,18 @@
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;F:/pyProj/di4&quot;
   }
 }</component>
-  <component name="RunManager" selected="Python.main">
-    <configuration name="Constants" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="F:\pyProj\di4" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Python.main_root">
+    <configuration name="backuper" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="di4" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -49,28 +67,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/di4/settings/Constants.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="dbConnector" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="di4" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/di4" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/di4/dbConnector.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/di4/settings/backuper.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -100,7 +97,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="querymaker" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="main_root" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="di4" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -108,11 +105,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/di4/settings" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="F:\pyProj\di4\di4\settings\querymaker.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main_root.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -142,13 +139,34 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="test1" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="di4" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test1.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.main_root" />
         <item itemvalue="Python.main" />
-        <item itemvalue="Python.Constants" />
         <item itemvalue="Python.test" />
-        <item itemvalue="Python.dbConnector" />
-        <item itemvalue="Python.querymaker" />
+        <item itemvalue="Python.backuper" />
+        <item itemvalue="Python.test1" />
       </list>
     </recent_temporary>
   </component>
@@ -175,7 +193,14 @@
       <option name="project" value="LOCAL" />
       <updated>1680715266886</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="beta_1.02&#10;02.1 средняя цена закупки теперь считается за последние два месяца&#10;02.2 добавлена сортировка по двойному клику на колонку в таблице">
+      <created>1681293063502</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1681293063502</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -192,20 +217,26 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="слияние тестовой ветки в main" />
     <MESSAGE value="beta_1.01&#10;01.1 убрано увеличение на складе при добавлении закупки&#10;01.2 изменено отображение таблицы статистики общей&#10;01.3 добавлен класс QueryMakerTemplate для использования Jinja2&#10;01.4 добавлены кнопки отображения статистики прибыли" />
-    <option name="LAST_COMMIT_MESSAGE" value="beta_1.01&#10;01.1 убрано увеличение на складе при добавлении закупки&#10;01.2 изменено отображение таблицы статистики общей&#10;01.3 добавлен класс QueryMakerTemplate для использования Jinja2&#10;01.4 добавлены кнопки отображения статистики прибыли" />
+    <MESSAGE value="beta_1.02&#10;02.1 средняя цена закупки теперь считается за последние два месяца&#10;02.2 добавлена сортировка по двойному клику на колонку в таблице" />
+    <option name="LAST_COMMIT_MESSAGE" value="beta_1.02&#10;02.1 средняя цена закупки теперь считается за последние два месяца&#10;02.2 добавлена сортировка по двойному клику на колонку в таблице" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/di4/main.py</url>
-          <line>800</line>
+          <line>685</line>
           <option name="timeStamp" value="2" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/test.py</url>
-          <line>12</line>
+          <url>file://$PROJECT_DIR$/di4/settings/backuper.py</url>
+          <line>77</line>
           <option name="timeStamp" value="3" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/main_root.py</url>
+          <line>10</line>
+          <option name="timeStamp" value="5" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

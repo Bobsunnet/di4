@@ -7,6 +7,7 @@ with open(STYLES_PATH, 'r') as file:
 
 
 if __name__ == '__main__':
+    write_backup()
     app = QtWidgets.QApplication(sys.argv)
     app.setStyleSheet(style)
 

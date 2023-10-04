@@ -91,9 +91,6 @@ class QueryMakerTemplate:
 
 
 
-
-
-
 if __name__ == '__main__':
     # purchase_query_stat = QueryMakerGroup('purchase', 'goods.id', const.BASE_TOTAL_PURCHASES)
     # purchase_query_stat.set_WHERE_fields({'purchase.date': '2023-03', 'name': ''})

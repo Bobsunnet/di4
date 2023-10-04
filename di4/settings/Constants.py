@@ -2,7 +2,7 @@ from PyQt5 import QtGui, QtCore
 import datetime
 
 NOW_DATE = datetime.datetime.utcnow().date()
-
+TWO_MONTH_IN_DAYS = 60
 
 def get_former_date(days):
     """returns date that was some period ago"""
@@ -15,6 +15,13 @@ DB_NAME = 'bampera.db'
 TABLE_GOODS = 'goods'
 TABLE_PURCHASE = 'purchase'
 TABLE_ORDERS = 'orders'
+
+HEADERS_GOODS = ['Name', 'amount']
+HEADERS_ORDERS = ['Name', 'sell_price', 'date']
+HEADERS_PURCHASE = ['Name', 'buy_price', 'date']
+
+INIT_NOW_MONTH = NOW_DATE.strftime('%Y-%m')
+INIT_NOW_DAY = NOW_DATE.strftime('%Y-%m-%d')
 
 
 BASE_QUERY_ORDERS_ALL = '''
@@ -63,7 +70,7 @@ AVG_PROFIT_STAT_TEMPLATE = '''
                   FROM purchase 
                   JOIN goods ON purchase.goods_id = goods.id
         ''' + f'''
-            WHERE date(purchase.date) BETWEEN date('{get_former_date(60).strftime('%Y-%m-%d')}') 
+            WHERE date(purchase.date) BETWEEN date('{get_former_date(TWO_MONTH_IN_DAYS).strftime('%Y-%m-%d')}') 
                                       AND date('{NOW_DATE.strftime('%Y-%m-%d')}')
             GROUP BY purchase.goods_id) purchase_avg ON purchase_avg.name = goods.name'''
 

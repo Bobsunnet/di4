@@ -1,36 +1,39 @@
 import os
 import re
 import sys
+import logging
 
 from PyQt5 import QtWidgets, QtCore, QtGui, QtSql
 from PyQt5.QtCore import Qt, QSortFilterProxyModel
 
 from di4 import dbConnector
 from di4.settings import sql_pyqt
-from di4.settings.Constants import (VALIDATOR_DIGITS,
-                                    BASE_TOTAL_PURCHASES,
-                                    BASE_TOTAL_ORDERS,
-                                    AVG_PROFIT_STAT_TEMPLATE)
+from di4.settings.Constants import (BASE_TOTAL_PURCHASES, BASE_TOTAL_ORDERS, AVG_PROFIT_STAT_TEMPLATE,
+                                    HEADERS_GOODS, HEADERS_PURCHASE, HEADERS_ORDERS,
+                                    INIT_NOW_MONTH, INIT_NOW_DAY)
 from di4.settings import MyExceptions
 from di4.settings.querymaker import QueryMaker, QueryMakerGroup, QueryMakerTemplate
 from di4.settings.backuper import write_backup
 
-write_backup()
+from di4.MyWidgets import MyTableView, AddWidget
+from di4.Utils import DataOperator
+
+
+file_log = logging.FileHandler('logfile.log')
+console_log = logging.StreamHandler()
+
+logging.basicConfig(handlers=(file_log, console_log),
+                    encoding='UTF-8',
+                    level=logging.ERROR,
+                    format='[%(levelname)s]:%(asctime)s:|%(filename)s|:<%(funcName)s>:"%(message)s"',
+                    datefmt='%Y-%m-%d %H:%M:%S')
+
 
 BASEDIR = os.path.dirname(__file__)
 STYLES_PATH = os.path.join(BASEDIR, 'static/style/style.css')
 
 with open(STYLES_PATH, 'r') as file:
     style = file.read()
-
-
-HEADERS_GOODS = ['Name', 'amount']
-HEADERS_ORDERS = ['Name', 'sell_price', 'date']
-HEADERS_PURCHASE = ['Name', 'buy_price', 'date']
-HEADERS_STAT = ['Name', 'buy_price', 'sell_price', 'buy_date', 'sell_date']
-
-INIT_NOW_MONTH = dbConnector.NOW_DATE.strftime('%Y-%m')
-INIT_NOW_DAY = dbConnector.NOW_DATE.strftime('%Y-%m-%d')
 
 TABLE_NAMES_LIST = [dbConnector.TABLE_GOODS, dbConnector.TABLE_PURCHASE, dbConnector.TABLE_ORDERS]
 
@@ -55,128 +58,6 @@ def update_goods_completer():
     global goods_completer
     goods_completer = QtWidgets.QCompleter(goods_names)
     goods_completer.setCaseSensitivity(Qt.CaseInsensitive)
-
-
-class MyTableView(QtWidgets.QTableView):
-    def __init__(self):
-        super(MyTableView, self).__init__()
-
-        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(self.right_menu)
-
-
-    def right_menu(self, pos):
-        menu = QtWidgets.QMenu()
-
-        # Add menu options
-        hello_option = menu.addAction('Add Purchase(in testing...)')
-        goodbye_option = menu.addAction('Add Order(in testing...)')
-
-        # Menu option events
-        hello_option.triggered.connect(mainWindow.btn_add_purchase_clicked)
-        goodbye_option.triggered.connect(mainWindow.btn_add_order_clicked)
-
-        # Position
-        menu.exec_(self.mapToGlobal(pos))
-
-
-class AddWidget(QtWidgets.QWidget):
-    def __init__(self):
-        super().__init__()
-        update_goods_names()
-
-        self.widgets_setup()
-        self.layout_setup()
-
-        self.properties_setup()
-
-    def widgets_setup(self):
-        self.add_button = QtWidgets.QPushButton()
-        self.add_button.setText('Додати всі')
-
-        self.field_price = QtWidgets.QLineEdit()
-        self.field_price.setPlaceholderText('0.00')
-        self.field_price.setValidator(VALIDATOR_DIGITS)
-
-        self.field_amount = QtWidgets.QLineEdit()
-        self.field_amount.setPlaceholderText('к-ть')
-        self.field_amount.setValidator(VALIDATOR_DIGITS)
-
-        self.field_date = QtWidgets.QLineEdit()
-        self.field_date.setPlaceholderText('yyyy-mm-dd')
-        self.field_date.setText(INIT_NOW_DAY)
-
-        self.combox_goods_names = QtWidgets.QComboBox()
-        self.combox_goods_names.setEditable(True)
-
-    def layout_setup(self):
-        layout_left = QtWidgets.QVBoxLayout()
-        layout_left.addWidget(self.field_amount)
-        layout_left.addWidget(self.field_price)
-        layout_left.addWidget(self.field_date)
-
-        layout_central = QtWidgets.QVBoxLayout()
-        layout_central.addWidget(self.combox_goods_names)
-
-        layout_right = QtWidgets.QVBoxLayout()
-        layout_right.addWidget(self.add_button)
-
-        layout_main = QtWidgets.QHBoxLayout()
-
-        layout_main.addLayout(layout_left,7)
-        layout_main.addLayout(layout_central,5)
-        layout_main.addLayout(layout_right,3)
-
-        self.setLayout(layout_main)
-
-    def properties_setup(self):
-        self.update_combobox_names()
-        self.refresh_completer()
-
-    def refresh_completer(self):
-        self.combox_goods_names.setCompleter(goods_completer)
-
-    def get_field_data(self):
-        """ Возвращает данные с полей окна "Add_many_Purchase"
-        :return: goods_name, price, amount, date """
-        goods_name = self.combox_goods_names.currentText()
-        date = self.field_date.text()
-        amount_field = self.field_amount.text()
-        if not amount_field:
-            raise MyExceptions.InvalidDataField('Невірно заповнене поле')
-        amount = int(amount_field)
-        price = float(self.field_price.text()) if self.field_price.text() else 0
-        return goods_name, price, amount, date
-
-    def update_combobox_names(self):
-        self.combox_goods_names.clear()
-        self.combox_goods_names.addItems(goods_names)
-
-
-class DataOperator:
-    def __init__(self):
-        self.cell_info = {}
-        self.model_list:list = []
-        self.selected_rows_ids = None
-        self.active_model_info ={'sorted_asc':False, 'sorted_column':None, 'active_model':None}
-
-    def get_cell_info(self, key:str):
-        """ :param key: info type(index or model) """
-        return self.cell_info.get(key)
-
-    def set_cell_info(self, index, model):
-        self.cell_info['index'] = index
-        self.cell_info['model'] = model
-
-    def reset_cell_info(self):
-        self.cell_info['index'] = None
-        self.cell_info['model'] = None
-
-    def set_active_model(self, model):
-        self.active_model_info['active_model'] = model
-
-    def get_active_model(self):
-        return self.active_model_info['active_model']
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -228,7 +109,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.data_cash.model_list.append(getattr(self, model_name))
 
     def create_table_view(self, model, obj_name):
-        table_view = MyTableView()
+        table_view = MyTableView(self) # inserting self(mainWindow instance) as parent_window
         table_view.setObjectName(obj_name)
         table_view.setModel(model)
         table_view.hideColumn(0)
@@ -302,7 +183,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tab_widget.currentChanged.connect(self.tab_changed)
 
         # _____________________________________ ADD WIDGET SETUP _______________________________
-        self.window_add_many_purchases = AddWidget()
+        self.window_add_many_purchases = AddWidget(update_goods_names, goods_completer, goods_names)
         self.window_add_many_purchases.add_button.clicked.connect(self.action_add_many_purchases)
 
         # _______________________________________BUTTONS_LAYER__________________________________
@@ -443,7 +324,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
 # _____________________________________ SIGNALS/ACTIONS ___________________________________________
     def debug_action(self):
-        print('DEBUG IS EMPTY')
+        # print('DEBUG IS EMPTY')
+        print(self.window_add_many_purchases.goods_names)
 
     def sorting_double_clicked(self, col):
         """Сортирует по двойному клику на колонке"""
@@ -492,7 +374,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def btn_add_many_purchases_clicked(self):
         """ Открывает окно добавление нескольких закупок """
         update_goods_completer()
-        self.window_add_many_purchases.update_combobox_names()
+        self.window_add_many_purchases.update_combobox_names(goods_names)
         self.window_add_many_purchases.refresh_completer()
         self.window_add_many_purchases.show()
 
@@ -503,6 +385,7 @@ class MainWindow(QtWidgets.QMainWindow):
             query = self.purchase_query_grouped.get_full_query_grouped('purchase.date', 'name')
         else:
             query = self.purchase_query_grouped.get_full_query_grouped('name')
+        print(query)
         self.show_stat_table(query)
         self.calculate_statistic_buy(query)
         self.rename_tab(3, 'Purchases stat')
@@ -513,6 +396,7 @@ class MainWindow(QtWidgets.QMainWindow):
             query = self.orders_query_grouped.get_full_query_grouped('orders.date', 'name')
         else:
             query = self.orders_query_grouped.get_full_query_grouped('name')
+        print(query)
         self.show_stat_table(query)
         self.calculate_statistic_sell(query)
         self.rename_tab(3, 'Sells stat')
@@ -523,6 +407,7 @@ class MainWindow(QtWidgets.QMainWindow):
             query = self.profit_query.get_full_query('date', 'name')
         else:
             query = self.profit_query.get_full_query('name')
+        print(query)
         self.show_stat_table(query)
         self.calculate_statistic_profit(query)
         self.rename_tab(3, 'Profit stat')
@@ -551,7 +436,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.refresh_table(i)
         self.draw_on_label_info()
 
-
     def cell_highlighted(self, current):
         """ Срабатывает когда выделяется ячейка таблицы"""
         self.data_cash.set_cell_info(current, self.tab_widget.currentWidget().model())
@@ -572,6 +456,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         except Exception as ex:
             self.draw_error_message('Шось не то =(', exception=ex)
+            logging.error(ex)
 
         self.data_cash.reset_cell_info()
 
@@ -682,6 +567,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.add_purchase(goods_id)
         except Exception as ex:
             self.draw_error_message('Помилка роботи з таблицею', exception=ex)
+            logging.error(ex)
 
     def add_purchase(self, goods_id: int, amount: int = 1, price: int | float = 0, date=INIT_NOW_DAY):
         """Добавляет запись в таблицу покупок"""
@@ -699,14 +585,15 @@ class MainWindow(QtWidgets.QMainWindow):
         """Добавляет несколько записей в таблицу покупок"""
         try:
             name, price,amount,date = self.window_add_many_purchases.get_field_data()
-            if amount > 1000:
-                self.draw_error_message('Можна додавати не більше 1000 штук за раз')
+            if amount > 100:
+                self.draw_error_message('Можна додавати не більше 100 штук за раз')
             else:
                 goods_id = self.get_goods_id(name)
                 if goods_id:
                     self.add_purchase(goods_id,amount,price,date)
         except MyExceptions.InvalidDataField as ex:
             self.draw_error_message('Невірно вказані дані', ex)
+            logging.error(ex)
 
     # _________________________________ ADD ORDER _____________________________________
     def btn_add_order_clicked(self):
@@ -717,6 +604,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.add_order(goods_id)
         except Exception as ex:
             self.draw_error_message('Помилка роботи з таблицею', exception=ex)
+            logging.error(ex)
 
     def add_order(self, goods_id: int, amount: int = 1, price: int | float = 0, date=INIT_NOW_DAY):
         for i in range(amount):
@@ -737,14 +625,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tab_widget.setCurrentIndex(3)
         self.set_active_model()
 
-    def edit_order_cell(self, db_func, value):
-        try:
-            order_id = int(self.label_info.text().split('=')[1].strip())
-            db_func(order_id, value)
-            self.refresh_table(2)
-        except Exception as ex:
-            self.draw_error_message('Спочатку виберіть товар з таблиці "orders"', exception=ex)
-
     def draw_on_label_info(self):
         row_id = self.get_row_id()
         self.label_info.setText(f'obj_id = {row_id}')
@@ -761,6 +641,7 @@ class MainWindow(QtWidgets.QMainWindow):
             return dbConnector.select_goods_id(goods_name)[0][0]
         except IndexError as ex:
             self.draw_error_message('Такого товару не знайдено =(', exception=ex)
+            logging.error(ex)
 
     def get_row_id(self):
         #todo херово написанный метод. не гибкий!!
@@ -773,12 +654,13 @@ class MainWindow(QtWidgets.QMainWindow):
                 return row_id
 
             except Exception as ex:
+                logging.error(ex)
                 print(ex)
 
     @staticmethod
     def make_safe_filter_string(text):
         """Переделывает строку для избежания SQL-инъекций"""
-        text_safe = re.sub(r'\"+', '', text.strip())
+        text_safe = re.sub(r'\";+', '', text.strip())
         return text_safe
 
     def draw_error_message(self, error_text, exception:Exception='Undefined'):
@@ -795,6 +677,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
 if __name__ == '__main__':
+    write_backup()
+
     app = QtWidgets.QApplication(sys.argv)
     app.setStyleSheet(style)
 

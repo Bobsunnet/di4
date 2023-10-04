@@ -1,7 +1,9 @@
+import logging
 import os
 import sqlite3 as sq
 from di4.settings.Constants import *
 
+DATABASE_ERROR = 'Database error'
 
 directory = os.path.dirname(__file__)
 DB_NAME = os.path.join(directory,f'settings/{DB_NAME}')
@@ -18,12 +20,12 @@ def many_execution(query, data_arr:list):
 
         except sq.IntegrityError as integrity_error:
             connection.rollback()
-            print(f'[ERROR] database problem: {integrity_error}')
+            logging.error(f'{DATABASE_ERROR}: {integrity_error}')
             return 'integrity_error', integrity_error
 
         except Exception as ex:
             connection.rollback()
-            print(f'[ERROR] database problem: {ex}')
+            logging.error(f'{DATABASE_ERROR}: {ex}')
             return 'general_error', ex
 
 
@@ -38,12 +40,12 @@ def general_execution(query):
 
         except sq.IntegrityError as integrity_error:
             connection.rollback()
-            print(f'[ERROR] database problem: {integrity_error}')
+            logging.error(f'{DATABASE_ERROR}: {integrity_error}')
             return 'integrity_error', integrity_error
 
         except Exception as ex:
             connection.rollback()
-            print(f'[ERROR] database problem: {ex}')
+            logging.error(f'{DATABASE_ERROR}: {ex}')
             return 'general_error', ex
 
 
