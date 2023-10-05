@@ -15,8 +15,9 @@ from di4.settings import MyExceptions
 from di4.settings.querymaker import QueryMaker, QueryMakerGroup, QueryMakerTemplate
 from di4.settings.backuper import write_backup
 
-from di4.MyWidgets import MyTableView, AddWidget
-from di4.Utils import DataOperator
+from di4.MyWidgets import AddWidget
+from di4.MainGuiMixin import MainGuiMixin
+from di4.Utils import CurrentDataOperator
 
 
 file_log = logging.FileHandler('logfile.log')
@@ -60,22 +61,22 @@ def update_goods_completer():
     goods_completer.setCaseSensitivity(Qt.CaseInsensitive)
 
 
-class MainWindow(QtWidgets.QMainWindow):
+class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
         self.model_purchase = None
         self.model_orders = None
-        self.setup_ui()
 
         self.query_makers_setup()
-        self.data_cash = DataOperator()
+        self.data_cash = CurrentDataOperator()
 
         self.model_init(dbConnector.TABLE_GOODS, HEADERS_GOODS, 'model_goods')
         self.model_init(dbConnector.TABLE_PURCHASE, HEADERS_PURCHASE, 'model_purchase')
         self.model_init(dbConnector.TABLE_ORDERS, HEADERS_ORDERS, 'model_orders')
 
-        self.table_view_setup()
-        self.widgets_setup()
+        self.table_view_setup_logic()
+        self.widgets_setup_ui()
+        self.widgets_setup_connections()
         self.layout_setup()
         self.tool_bar_setup()
 
@@ -97,8 +98,9 @@ class MainWindow(QtWidgets.QMainWindow):
         tool_bar.addAction(self.act_add_many_purchases)
 
     def model_init(self, table:str, headers:list, model_name:str):
+        """ Создает модель QSqlRelationalTableModel и добавляет в список моделей """
         model = sql_pyqt.QSqlRelationalTableModel(db=sql_pyqt.db)
-        model.setTable(table)
+        model.setTable(table) # привязывает таблицу БД по названию
         model.setEditStrategy(sql_pyqt.QSqlTableModel.EditStrategy.OnFieldChange)
         model.sort(0, Qt.SortOrder.DescendingOrder)
         for i, name in enumerate(headers):
@@ -106,18 +108,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         model.select()
         setattr(self, model_name, model)
-        self.data_cash.model_list.append(getattr(self, model_name))
+        self.data_cash.models_list.append(getattr(self, model_name))
 
-    def create_table_view(self, model, obj_name):
-        table_view = MyTableView(self) # inserting self(mainWindow instance) as parent_window
-        table_view.setObjectName(obj_name)
-        table_view.setModel(model)
-        table_view.hideColumn(0)
-        for i in range(model.columnCount() - 1):
-            table_view.horizontalHeader().setSectionResizeMode(i, QtWidgets.QHeaderView.ResizeToContents)
-        table_view.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
-
-        setattr(self, obj_name, table_view)
 
     def query_makers_setup(self):
         self.goods_query = QueryMaker('goods')
@@ -141,45 +133,34 @@ class MainWindow(QtWidgets.QMainWindow):
         self.profit_query = QueryMakerTemplate(AVG_PROFIT_STAT_TEMPLATE)
         self.profit_query.set_WHERE_fields({'name': '', 'date': INIT_NOW_MONTH})
 
-
-    def table_view_setup(self):
+    def table_view_setup_logic(self):
         self.create_table_view(getattr(self,'model_goods'), 'table_view_goods')
         self.create_table_view(getattr(self,'model_purchase'), 'table_view_purchase')
         self.create_table_view(getattr(self,'model_orders'), 'table_view_orders')
 
-        self.table_view_stat = QtWidgets.QTableView()
-        self.table_view_stat.setObjectName('table_view_stat')
         self.table_view_stat.horizontalHeader().setSectionResizeMode(1)
-        self.table_view_stat.horizontalHeader().sectionDoubleClicked.connect(self.sorting_double_clicked)
+        self.table_view_stat.horizontalHeader().sectionDoubleClicked.connect(self.col_header_double_clicked)
 
-        self.table_view_debug = QtWidgets.QTableView()
-        self.table_view_debug.setObjectName('table_view_debug')
         self.table_view_debug.horizontalHeader().setSectionResizeMode(3)
-        self.table_view_debug.horizontalHeader().sectionDoubleClicked.connect(self.sorting_double_clicked)
+        self.table_view_debug.horizontalHeader().sectionDoubleClicked.connect(self.col_header_double_clicked)
 
-        # при нажатии на ячейку срабатывает ивентлуп
         self.table_view_goods.selectionModel().currentChanged.connect(self.cell_highlighted)
         self.table_view_goods.selectionModel().selectionChanged.connect(self.items_selected)
         self.table_view_goods.horizontalHeader().setProperty('goods', True)
-        self.table_view_goods.horizontalHeader().sectionDoubleClicked.connect(self.sorting_double_clicked)
+        self.table_view_goods.horizontalHeader().sectionDoubleClicked.connect(self.col_header_double_clicked)
 
         self.table_view_purchase.selectionModel().currentChanged.connect(self.cell_highlighted)
         self.table_view_purchase.selectionModel().selectionChanged.connect(self.items_selected)
         self.table_view_purchase.horizontalHeader().setProperty('purchases', True)
-        self.table_view_purchase.horizontalHeader().sectionDoubleClicked.connect(self.sorting_double_clicked)
+        self.table_view_purchase.horizontalHeader().sectionDoubleClicked.connect(self.col_header_double_clicked)
 
         self.table_view_orders.selectionModel().currentChanged.connect(self.cell_highlighted)
         self.table_view_orders.selectionModel().selectionChanged.connect(self.items_selected)
         self.table_view_orders.horizontalHeader().setProperty('orders', True)
-        self.table_view_orders.horizontalHeader().sectionDoubleClicked.connect(self.sorting_double_clicked)
+        self.table_view_orders.horizontalHeader().sectionDoubleClicked.connect(self.col_header_double_clicked)
 
-    def widgets_setup(self):
+    def widgets_setup_connections(self):
         # ____________________________________ TAB WIDGET SETUP _________________________
-        self.tab_widget = QtWidgets.QTabWidget()
-        tab_widgets_list = [self.table_view_goods, self.table_view_purchase, self.table_view_orders,
-                            self.table_view_stat, self.table_view_debug]
-        for widg in tab_widgets_list:
-            self.tab_widget.addTab(widg, widg.objectName()[11:].capitalize())
         self.tab_widget.currentChanged.connect(self.tab_changed)
 
         # _____________________________________ ADD WIDGET SETUP _______________________________
@@ -187,60 +168,29 @@ class MainWindow(QtWidgets.QMainWindow):
         self.window_add_many_purchases.add_button.clicked.connect(self.action_add_many_purchases)
 
         # _______________________________________BUTTONS_LAYER__________________________________
-        self.lnedit_finder = QtWidgets.QLineEdit()
-        self.lnedit_finder.setPlaceholderText('Пошук')
         self.lnedit_finder.setCompleter(goods_completer)
         self.lnedit_finder.returnPressed.connect(self.lnedit_finder_pressed)
-        self.lnedit_finder.setMaximumWidth(500)
 
-        self.btn_new_goods = QtWidgets.QPushButton()
         self.btn_new_goods.setIcon(QtGui.QIcon(f'{BASEDIR}/static/icons/postal.png'))
-        self.btn_new_goods.setObjectName('new_goods')
-        self.btn_new_goods.setText('Додати Товар')
         self.btn_new_goods.clicked.connect(self.btn_new_goods_clicked)
 
-        self.btn_new_purchase = QtWidgets.QPushButton()
         self.btn_new_purchase.setIcon(QtGui.QIcon(f'{BASEDIR}/static/icons/purchasing.png'))
-        self.btn_new_purchase.setObjectName('new_purchase')
-        self.btn_new_purchase.setText('Додати Закупку')
         self.btn_new_purchase.clicked.connect(self.btn_add_purchase_clicked)
 
-        self.btn_new_order = QtWidgets.QPushButton()
         self.btn_new_order.setIcon(QtGui.QIcon(f'{BASEDIR}/static/icons/selling.png'))
-        self.btn_new_order.setObjectName('new_order')
-        self.btn_new_order.setText('Додати продажу')
         self.btn_new_order.clicked.connect(self.btn_add_order_clicked)
 
-        self.btn_delete_row = QtWidgets.QPushButton()
         self.btn_delete_row.setIcon(QtGui.QIcon(f'{BASEDIR}/static/icons/trash.png'))
-        self.btn_delete_row.setObjectName('delete_row')
-        self.btn_delete_row.setText('Видалити')
         self.btn_delete_row.clicked.connect(self.btn_delete_row_clicked)
 
     # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ EDITING LAYER ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-        self.btn_statistics_purchase = QtWidgets.QPushButton()
-        self.btn_statistics_purchase.setText('Статистика Закупок')
         self.btn_statistics_purchase.clicked.connect(self.btn_statistics_purchase_clicked)
-
-        self.btn_statistics_order = QtWidgets.QPushButton()
-        self.btn_statistics_order.setText('Статистика Продажів')
         self.btn_statistics_order.clicked.connect(self.btn_statistics_order_clicked)
-
-        self.btn_statistics_profit = QtWidgets.QPushButton()
-        self.btn_statistics_profit.setText('Статистика Прибутку')
         self.btn_statistics_profit.clicked.connect(self.btn_statistics_profit_clicked)
 
         # __________________________________TEXT_LAYER_________________________
-        self.label_info = QtWidgets.QLabel()
-        self.label_info.setText('id=???')
-
-        self.date_filter = QtWidgets.QLineEdit()
-        self.date_filter.setPlaceholderText('yyyy-mm')
-        self.date_filter.setText(INIT_NOW_MONTH)
-        self.date_filter.setMaximumWidth(120)
         self.date_filter.returnPressed.connect(self.date_filter_pressed)
 
-        self.checkbox_date_filter = QtWidgets.QCheckBox('On')
         self.checkbox_date_filter.setChecked(True)
         ch_box = self.checkbox_date_filter
         ch_box.clicked.connect(lambda: ch_box.setText('On') if ch_box.isChecked() else ch_box.setText('Off'))
@@ -248,95 +198,29 @@ class MainWindow(QtWidgets.QMainWindow):
             lambda: self.date_filter.setEnabled(True) if ch_box.isChecked() else self.date_filter.setEnabled(False))
         ch_box.clicked.connect(self.checkbox_filter_clicked)
 
-        self.lbl_quick_stat_buy = QtWidgets.QLabel()
-        self.lbl_quick_stat_buy.setProperty('LabelStat', True)
-        self.lbl_quick_stat_buy.setObjectName('stat_buy')
-        self.lbl_quick_stat_buy.setText('buy_total: \n__ ')
-
-        self.lbl_quick_stat_sell = QtWidgets.QLabel()
-        self.lbl_quick_stat_sell.setProperty('LabelStat', True)
-        self.lbl_quick_stat_sell.setObjectName('stat_sell')
-        self.lbl_quick_stat_sell.setText('sell_total: \n__ ')
-
-        self.lbl_quick_stat_profit = QtWidgets.QLabel()
-        self.lbl_quick_stat_profit.setProperty('LabelStat', True)
-        self.lbl_quick_stat_profit.setObjectName('stat_profit')
-        self.lbl_quick_stat_profit.setText('profit_total: \n__ ')
-
         # ____________________________________ MODELS _________________________________
         self.model_purchase.setRelation(1, sql_pyqt.QSqlRelation("goods", 'id', 'name'))
         self.model_orders.setRelation(1, sql_pyqt.QSqlRelation("goods", 'id', 'name'))
 
-    def layout_setup(self):
-        # ________________________________BUTTONS_LAYOUT___________________________________
-        buttons_layout = QtWidgets.QHBoxLayout()
-
-        buttons_layout.addWidget(self.lnedit_finder)
-        buttons_layout.addWidget(self.btn_new_goods)
-        buttons_layout.addWidget(self.btn_new_purchase)
-        buttons_layout.addWidget(self.btn_new_order)
-        buttons_layout.addWidget(self.btn_delete_row)
-
-        # ________________________________EDIT WIDGETS_LAYOUT___________________________________
-        properties_layout = QtWidgets.QHBoxLayout()
-
-        label_date_layout = QtWidgets.QVBoxLayout()
-        label_date_layout.addWidget(self.date_filter)
-        label_date_layout.addWidget(self.checkbox_date_filter)
-        label_date_layout.addWidget(self.label_info)
-
-        stats_buy_layout = QtWidgets.QVBoxLayout()
-        stats_buy_layout.addWidget(self.btn_statistics_purchase, 3)
-        stats_buy_layout.addWidget(self.lbl_quick_stat_buy,7)
-
-        stats_sell_layout = QtWidgets.QVBoxLayout()
-        stats_sell_layout.addWidget(self.btn_statistics_order, 3)
-        stats_sell_layout.addWidget(self.lbl_quick_stat_sell,7)
-
-        stats_profit_layout = QtWidgets.QVBoxLayout()
-        stats_profit_layout.addWidget(self.btn_statistics_profit, 3)
-        stats_profit_layout.addWidget(self.lbl_quick_stat_profit, 7)
-
-        properties_layout.addLayout(label_date_layout)
-        properties_layout.addSpacing(500)
-        properties_layout.addLayout(stats_buy_layout)
-        properties_layout.addLayout(stats_sell_layout)
-        properties_layout.addLayout(stats_profit_layout)
-
-        # ________________________________MAIN_LAYOUT___________________________________________
-        top_layout_widget = QtWidgets.QWidget()
-        top_layout_widget.setLayout(properties_layout)
-        main_layout = QtWidgets.QVBoxLayout()
-
-        splitter = QtWidgets.QSplitter(Qt.Vertical)
-        splitter.addWidget(top_layout_widget)
-        splitter.addWidget(self.tab_widget)
-        splitter.setStretchFactor(1, 1)
-        splitter.setSizes([125, 150])
-
-        main_layout.addLayout(buttons_layout)
-        main_layout.addWidget(splitter)
-
-        main_layout_widget = QtWidgets.QWidget()
-        main_layout_widget.setLayout(main_layout)
-
-        self.setCentralWidget(main_layout_widget)
 
 # _____________________________________ SIGNALS/ACTIONS ___________________________________________
     def debug_action(self):
-        # print('DEBUG IS EMPTY')
-        print(self.window_add_many_purchases.goods_names)
+        print('DEBUG IS EMPTY')
 
-    def sorting_double_clicked(self, col):
+    def col_header_double_clicked(self, col:int):
         """Сортирует по двойному клику на колонке"""
         model = self.data_cash.get_active_model()
-        if not self.data_cash.active_model_info['sorted_asc'] or self.data_cash.active_model_info['sorted_column'] != col:
-            model.sort(col, Qt.AscendingOrder)
-            self.data_cash.active_model_info['sorted_asc'] = True
-        else:
+        self.sort_table_column(model, col)
+
+    def sort_table_column(self, model, col:int):
+        if self.data_cash.current_column.sorted_asc:
             model.sort(col, Qt.DescendingOrder)
-            self.data_cash.active_model_info['sorted_asc'] = False
-        self.data_cash.active_model_info['sorted_column'] = col
+        else:
+            model.sort(col, Qt.AscendingOrder)
+
+        self.data_cash.current_column.change_header_name(model, col)  # меняет имя хедера
+        self.data_cash.current_column.change_sorted_status(model, col) # меняет статус отсортированности
+
 
     def set_active_model(self):
         active_model = self.tab_widget.currentWidget().model()
@@ -434,12 +318,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.activate_filter()
         self.set_active_model()
         self.refresh_table(i)
-        self.draw_on_label_info()
+        self.draw_id_info()
 
     def cell_highlighted(self, current):
-        """ Срабатывает когда выделяется ячейка таблицы"""
-        self.data_cash.set_cell_info(current, self.tab_widget.currentWidget().model())
-        self.draw_on_label_info()
+        """ Срабатывает когда выделяется ячейка таблицы
+        current - выделенная ячейка """
+        self.data_cash.set_index(current)
+        self.data_cash.set_model(self.tab_widget.currentWidget().model())
+        self.draw_id_info()
 
     # ______________________________________ DELETING ___________________________________________
     def btn_delete_row_clicked(self):
@@ -625,7 +511,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tab_widget.setCurrentIndex(3)
         self.set_active_model()
 
-    def draw_on_label_info(self):
+    def draw_id_info(self):
         row_id = self.get_row_id()
         self.label_info.setText(f'obj_id = {row_id}')
 
@@ -670,10 +556,6 @@ class MainWindow(QtWidgets.QMainWindow):
         msg.setInformativeText(f'{exception}')
 
         msg.exec_()
-
-    def setup_ui(self):
-        self.setWindowTitle('Table Main Window')
-        self.setMinimumSize(1000, 600)
 
 
 if __name__ == '__main__':
