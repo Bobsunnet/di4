@@ -22,7 +22,7 @@ class ColumnOperator:
 
     def restore_col_header(self):
         """ Возвращает старое название Хедеру несортированного столбца """
-        if self._stored_column:
+        if self._stored_column is not None:
             self._stored_model.setHeaderData(self._stored_column, Qt.Orientation.Horizontal, self._stored_name)
 
     def change_sorted_status(self, model, col):
