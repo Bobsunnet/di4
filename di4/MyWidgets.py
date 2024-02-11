@@ -1,8 +1,11 @@
 from PyQt5.QtCore import Qt
 from PyQt5 import QtWidgets
 
+from di4 import dbConnector
 from di4.settings import MyExceptions
 from di4.settings.Constants import VALIDATOR_DIGITS, NOW_DATE
+from di4.GoodsNamesListUpdater import GoodsNamesList
+
 
 INIT_NOW_DAY = NOW_DATE.strftime('%Y-%m-%d')
 
@@ -30,17 +33,13 @@ class MyTableView(QtWidgets.QTableView):
         menu.exec_(self.mapToGlobal(pos))
 
 
-class AddWidget(QtWidgets.QWidget):
-    def __init__(self, update_names_func, goods_completer, goods_names):
+class AddPurchaseWidget(QtWidgets.QWidget):
+    def __init__(self):
         super().__init__()
-        update_names_func() # link to "update_goods_names"
-        self.goods_completer = goods_completer
-        self.goods_names = goods_names
+        self.names_list_updater = GoodsNamesList()
 
         self.widgets_setup()
         self.layout_setup()
-
-        self.properties_setup()
 
     def widgets_setup(self):
         self.add_button = QtWidgets.QPushButton()
@@ -81,14 +80,10 @@ class AddWidget(QtWidgets.QWidget):
 
         self.setLayout(layout_main)
 
-    def properties_setup(self):
-        self.update_combobox_names(self.goods_names)
-        self.refresh_completer()
-
     def refresh_completer(self):
-        self.combox_goods_names.setCompleter(self.goods_completer)
+        self.combox_goods_names.setCompleter(self.names_list_updater.create_completer())
 
-    def get_field_data(self):
+    def get_input_fields_data(self):
         """ Возвращает данные с полей окна "Add_many_Purchase"
         :return: goods_name, price, amount, date """
         goods_name = self.combox_goods_names.currentText()
@@ -100,10 +95,10 @@ class AddWidget(QtWidgets.QWidget):
         price = float(self.field_price.text()) if self.field_price.text() else 0
         return goods_name, price, amount, date
 
-    def update_combobox_names(self, goods_names):
-        self.goods_names = goods_names
+    def update_combobox(self):
         self.combox_goods_names.clear()
-        self.combox_goods_names.addItems(self.goods_names)
+        self.combox_goods_names.addItems(self.names_list_updater.get_goods_names_list())
+        self.refresh_completer()
 
 
 def main():

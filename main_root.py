@@ -10,9 +10,9 @@ if __name__ == '__main__':
     write_backup()
     app = QtWidgets.QApplication(sys.argv)
     app.setStyleSheet(style)
-
     mainWindow = MainWindow()
     mainWindow.show()
-
     sys.exit(app.exec_())
+
+
 

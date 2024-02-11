@@ -15,9 +15,10 @@ from di4.settings import MyExceptions
 from di4.settings.querymaker import QueryMaker, QueryMakerGroup, QueryMakerTemplate
 from di4.settings.backuper import write_backup
 
-from di4.MyWidgets import AddWidget
+from di4.MyWidgets import AddPurchaseWidget
 from di4.MainGuiMixin import MainGuiMixin
 from di4.Utils import CurrentDataOperator
+from di4.GoodsNamesListUpdater import GoodsNamesList
 
 
 file_log = logging.FileHandler('logfile.log')
@@ -26,39 +27,18 @@ console_log = logging.StreamHandler()
 logging.basicConfig(handlers=(file_log, console_log),
                     encoding='UTF-8',
                     level=logging.ERROR,
-                    format='[%(levelname)s]:%(asctime)s:|%(filename)s|:<%(funcName)s>:"%(message)s"',
+                    format='[%(levelname)s] ** %(asctime)s ** |%(filename)s|:{%(funcName)s} ** "%(message)s"',
                     datefmt='%Y-%m-%d %H:%M:%S')
 
 
 BASEDIR = os.path.dirname(__file__)
+ICONS_DIR = f'{BASEDIR}/static/icons/'
 STYLES_PATH = os.path.join(BASEDIR, 'static/style/style.css')
 
 with open(STYLES_PATH, 'r') as file:
     style = file.read()
 
 TABLE_NAMES_LIST = [dbConnector.TABLE_GOODS, dbConnector.TABLE_PURCHASE, dbConnector.TABLE_ORDERS]
-
-
-# TODO переделать способ формирования списка, потому что происходит дублирование массива
-goods_names: list = []
-
-
-def update_goods_names():
-    global goods_names
-    goods_names = [g[0] for g in dbConnector.select_goods_name()]
-
-
-update_goods_names()
-
-goods_completer = QtWidgets.QCompleter(goods_names)
-goods_completer.setCaseSensitivity(Qt.CaseInsensitive)
-
-
-def update_goods_completer():
-    update_goods_names()
-    global goods_completer
-    goods_completer = QtWidgets.QCompleter(goods_names)
-    goods_completer.setCaseSensitivity(Qt.CaseInsensitive)
 
 
 class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
@@ -163,24 +143,24 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
         # ____________________________________ TAB WIDGET SETUP _________________________
         self.tab_widget.currentChanged.connect(self.tab_changed)
 
-        # _____________________________________ ADD WIDGET SETUP _______________________________
-        self.window_add_many_purchases = AddWidget(update_goods_names, goods_completer, goods_names)
+        # _____________________________________ ADD PURCHASE WIDGET SETUP _______________________________
+        self.window_add_many_purchases = AddPurchaseWidget()
         self.window_add_many_purchases.add_button.clicked.connect(self.action_add_many_purchases)
 
         # _______________________________________BUTTONS_LAYER__________________________________
-        self.lnedit_finder.setCompleter(goods_completer)
+        self.refresh_completer()
         self.lnedit_finder.returnPressed.connect(self.lnedit_finder_pressed)
 
-        self.btn_new_goods.setIcon(QtGui.QIcon(f'{BASEDIR}/static/icons/postal.png'))
+        self.btn_new_goods.setIcon(QtGui.QIcon(ICONS_DIR+'postal.png'))
         self.btn_new_goods.clicked.connect(self.btn_new_goods_clicked)
 
-        self.btn_new_purchase.setIcon(QtGui.QIcon(f'{BASEDIR}/static/icons/purchasing.png'))
+        self.btn_new_purchase.setIcon(QtGui.QIcon(ICONS_DIR+'purchasing.png'))
         self.btn_new_purchase.clicked.connect(self.btn_add_purchase_clicked)
 
-        self.btn_new_order.setIcon(QtGui.QIcon(f'{BASEDIR}/static/icons/selling.png'))
+        self.btn_new_order.setIcon(QtGui.QIcon(ICONS_DIR+'selling.png'))
         self.btn_new_order.clicked.connect(self.btn_add_order_clicked)
 
-        self.btn_delete_row.setIcon(QtGui.QIcon(f'{BASEDIR}/static/icons/trash.png'))
+        self.btn_delete_row.setIcon(QtGui.QIcon(ICONS_DIR+'trash.png'))
         self.btn_delete_row.clicked.connect(self.btn_delete_row_clicked)
 
     # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ EDITING LAYER ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -205,6 +185,7 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
 
 # _____________________________________ SIGNALS/ACTIONS ___________________________________________
     def debug_action(self):
+        a = 1 / 0
         print('DEBUG IS EMPTY')
 
     def col_header_double_clicked(self, col:int):
@@ -255,11 +236,14 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
         self.tab_widget.setCurrentIndex(0)
         self.refresh_table(0)
 
+    def __update_goods_names_list(self):
+        GoodsNamesList().update_goods_names_list()
+
     def btn_add_many_purchases_clicked(self):
         """ Открывает окно добавление нескольких закупок """
-        update_goods_completer()
-        self.window_add_many_purchases.update_combobox_names(goods_names)
-        self.window_add_many_purchases.refresh_completer()
+        # update_goods_completer()
+        self.__update_goods_names_list()
+        self.window_add_many_purchases.update_combobox()
         self.window_add_many_purchases.show()
 
     def btn_statistics_purchase_clicked(self):
@@ -313,6 +297,7 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
         self.draw_quick_stat_profit(res[0][0])
 
     def tab_changed(self, i):
+        self.__update_goods_names_list() #todo нужно вызывать этот метод после изменения данных в таблице goods
         self.data_cash.reset_cell_info()
         self.refresh_completer()
         self.activate_filter()
@@ -429,8 +414,7 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
         self.profit_query.set_WHERE_fields({'date': date})
 
     def refresh_completer(self):
-        update_goods_completer()
-        self.lnedit_finder.setCompleter(goods_completer)
+        self.lnedit_finder.setCompleter(GoodsNamesList().create_completer())
 
     def refresh_table(self, table_index):
         if table_index <= 2:
@@ -470,7 +454,7 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
     def action_add_many_purchases(self):
         """Добавляет несколько записей в таблицу покупок"""
         try:
-            name, price,amount,date = self.window_add_many_purchases.get_field_data()
+            name, price,amount,date = self.window_add_many_purchases.get_input_fields_data()
             if amount > 100:
                 self.draw_error_message('Можна додавати не більше 100 штук за раз')
             else:
@@ -568,3 +552,5 @@ if __name__ == '__main__':
     mainWindow.show()
 
     sys.exit(app.exec_())
+
+
