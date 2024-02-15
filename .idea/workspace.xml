@@ -4,11 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="db8a78d0-5e6d-4089-8f79-f27ede870314" name="Changes" comment="beta_1.02.1 Небольшой Рефакторинг&#10;02.1.1 перенесены классы AddWidget MyTableView в отдельный файл MyWidgets.py&#10;02.1.2 перенесен класс DataOperator в файл Utils.py&#10;02.1.3 перенесены некоторые константы и переменные в Constants.py">
-      <change afterPath="$PROJECT_DIR$/di4/MainGuiMixin.py" afterDir="false" />
+    <list default="true" id="db8a78d0-5e6d-4089-8f79-f27ede870314" name="Changes" comment="beta_1.04. изменения для обновления комплитера и комбобокса через один класс GoodsNamesList">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/di4/GoodsNamesListUpdater.py" beforeDir="false" afterPath="$PROJECT_DIR$/di4/GoodsNamesListUpdater.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/di4/MainGuiMixin.py" beforeDir="false" afterPath="$PROJECT_DIR$/di4/MainGuiMixin.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/di4/Utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/di4/Utils.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/di4/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/di4/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/di4/settings/querymaker.py" beforeDir="false" afterPath="$PROJECT_DIR$/di4/settings/querymaker.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/di4/settings/sql_pyqt.py" beforeDir="false" afterPath="$PROJECT_DIR$/di4/settings/sql_pyqt.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tasks.txt" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -29,7 +33,9 @@
     <option name="stateVersion" value="1" />
   </component>
   <component name="ProjectId" id="2O142ScF0pRMdjBRACqSu1zloxi" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="1" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -38,8 +44,9 @@
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;new__features&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;F:/pyProj/di4&quot;
+    &quot;last_opened_file_path&quot;: &quot;F:/pyProj/Study/AppUpdatingTest&quot;
   }
 }</component>
   <component name="RecentsManager">
@@ -48,7 +55,7 @@
     </key>
   </component>
   <component name="RunManager" selected="Python.main_root">
-    <configuration name="backuper" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="GoodsNamesListUpdater" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="di4" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -56,11 +63,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/di4/settings" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/di4" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/di4/settings/backuper.py" />
+      <option name="SCRIPT_NAME" value="F:\pyProj\di4\di4\GoodsNamesListUpdater.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -111,6 +118,27 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="querymaker" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="di4" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/di4/settings" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/di4/settings/querymaker.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="test" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="di4" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -132,34 +160,13 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="test1" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="di4" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test1.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
     <recent_temporary>
       <list>
         <item itemvalue="Python.main_root" />
+        <item itemvalue="Python.querymaker" />
+        <item itemvalue="Python.GoodsNamesListUpdater" />
         <item itemvalue="Python.main" />
         <item itemvalue="Python.test" />
-        <item itemvalue="Python.backuper" />
-        <item itemvalue="Python.test1" />
       </list>
     </recent_temporary>
   </component>
@@ -207,7 +214,30 @@
       <option name="project" value="LOCAL" />
       <updated>1696417809769</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="beta_1.03.1 Добавлен стрелочка сортировки в хедере активного столбца&#10;03.1 добавлен класс для работы со столбцом ColumnOperator в Utils.py&#10;03.2 изменен класс CurrentDataOperator &#10;03.3 изменены методы для сортировки в main.py">
+      <created>1696506653269</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1696506653269</updated>
+    </task>
+    <task id="LOCAL-00007" summary="beta_1.03.2 Исправления &#10;1. исправлен баг отображения стрелочек при сортировке&#10;2. так же исправлено отображение сообщений Exceptions (убран метод __str__)">
+      <option name="closed" value="true" />
+      <created>1707122306242</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1707122306242</updated>
+    </task>
+    <task id="LOCAL-00008" summary="beta_1.04. изменения для обновления комплитера и комбобокса через один класс GoodsNamesList">
+      <option name="closed" value="true" />
+      <created>1707677142759</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1707677142760</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -227,14 +257,17 @@
     <MESSAGE value="beta_1.02&#10;02.1 средняя цена закупки теперь считается за последние два месяца&#10;02.2 добавлена сортировка по двойному клику на колонку в таблице" />
     <MESSAGE value="beta_1.02.1 Рефакторинг&#10;02.1.1 перенесены классы AddWidget MyTableView в отдельный файл&#10;02.1.2 перемещены некоторые константы в Constants.py из" />
     <MESSAGE value="beta_1.02.1 Небольшой Рефакторинг&#10;02.1.1 перенесены классы AddWidget MyTableView в отдельный файл MyWidgets.py&#10;02.1.2 перенесен класс DataOperator в файл Utils.py&#10;02.1.3 перенесены некоторые константы и переменные в Constants.py" />
-    <option name="LAST_COMMIT_MESSAGE" value="beta_1.02.1 Небольшой Рефакторинг&#10;02.1.1 перенесены классы AddWidget MyTableView в отдельный файл MyWidgets.py&#10;02.1.2 перенесен класс DataOperator в файл Utils.py&#10;02.1.3 перенесены некоторые константы и переменные в Constants.py" />
+    <MESSAGE value="beta_1.03.1 Добавлен стрелочка сортировки в хедере активного столбца&#10;03.1 добавлен класс для работы со столбцом ColumnOperator в Utils.py&#10;03.2 изменен класс CurrentDataOperator &#10;03.3 изменены методы для сортировки в main.py" />
+    <MESSAGE value="beta_1.03.2 Исправления &#10;1. исправлен баг отображения стрелочек при сортировке&#10;2. так же исправлено отображение сообщений Exceptions (убран метод __str__)" />
+    <MESSAGE value="beta_1.04. изменения для обновления комплитера и комбобокса через один класс GoodsNamesList" />
+    <option name="LAST_COMMIT_MESSAGE" value="beta_1.04. изменения для обновления комплитера и комбобокса через один класс GoodsNamesList" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/di4/main.py</url>
-          <line>570</line>
+          <line>562</line>
           <option name="timeStamp" value="2" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -245,7 +278,12 @@
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/main_root.py</url>
           <line>10</line>
-          <option name="timeStamp" value="5" />
+          <option name="timeStamp" value="9" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/di4/GoodsNamesListUpdater.py</url>
+          <line>44</line>
+          <option name="timeStamp" value="11" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

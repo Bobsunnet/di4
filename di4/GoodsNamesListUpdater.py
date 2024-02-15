@@ -6,6 +6,9 @@ from di4 import dbConnector
 
 
 class GoodsNamesList:
+    """ This class is used for names storing and updating from db
+     Use singleton to prevent duplicating arrays with names in comboboxes and
+     QCompleters """
     goods_names_list_instance = None
     __isCreated = False
 

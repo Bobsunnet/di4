@@ -75,12 +75,12 @@ class MainGuiMixin(QMainWindow):
 
         # __________________________________TEXT_LAYER_________________________
         self.label_info = QLabel()
-        self.label_info.setText('id=???')
+        self.label_info.setText('obj_id = None')
 
-        self.date_filter = QLineEdit()
-        self.date_filter.setPlaceholderText('yyyy-mm')
-        self.date_filter.setText(INIT_NOW_MONTH)
-        self.date_filter.setMaximumWidth(120)
+        self.lnedit_date_filter = QLineEdit()
+        self.lnedit_date_filter.setPlaceholderText('yyyy-mm')
+        self.lnedit_date_filter.setText(INIT_NOW_MONTH)
+        self.lnedit_date_filter.setMaximumWidth(100)
 
         self.lbl_quick_stat_buy = QLabel()
         self.lbl_quick_stat_buy.setProperty('LabelStat', True)
@@ -111,7 +111,7 @@ class MainGuiMixin(QMainWindow):
         properties_layout = QHBoxLayout()
 
         label_date_layout = QVBoxLayout()
-        label_date_layout.addWidget(self.date_filter)
+        label_date_layout.addWidget(self.lnedit_date_filter)
         label_date_layout.addWidget(self.checkbox_date_filter)
         label_date_layout.addWidget(self.label_info)
 

@@ -48,7 +48,6 @@ class ColumnOperator:
         self._stored_model = model
 
 
-
 class CurrentDataOperator:
     """Хранит в себе данные о текущем состоянии программы, активных ячейках и т.д."""
 

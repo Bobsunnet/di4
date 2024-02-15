@@ -3,7 +3,7 @@ import re
 import sys
 import logging
 
-from PyQt5 import QtWidgets, QtCore, QtGui, QtSql
+from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt, QSortFilterProxyModel
 
 from di4 import dbConnector
@@ -12,7 +12,7 @@ from di4.settings.Constants import (BASE_TOTAL_PURCHASES, BASE_TOTAL_ORDERS, AVG
                                     HEADERS_GOODS, HEADERS_PURCHASE, HEADERS_ORDERS,
                                     INIT_NOW_MONTH, INIT_NOW_DAY)
 from di4.settings import MyExceptions
-from di4.settings.querymaker import QueryMaker, QueryMakerGroup, QueryMakerTemplate
+from di4.settings.querymaker import QueryMaker, QueryMakerGroupBy, QueryMakerTemplate
 from di4.settings.backuper import write_backup
 
 from di4.MyWidgets import AddPurchaseWidget
@@ -47,12 +47,14 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
         self.model_purchase = None
         self.model_orders = None
 
-        self.query_makers_setup()
+        self.init_query_makers()
         self.data_cash = CurrentDataOperator()
 
         self.model_init(dbConnector.TABLE_GOODS, HEADERS_GOODS, 'model_goods')
         self.model_init(dbConnector.TABLE_PURCHASE, HEADERS_PURCHASE, 'model_purchase')
         self.model_init(dbConnector.TABLE_ORDERS, HEADERS_ORDERS, 'model_orders')
+        #todo срабатывает дважды из-за сигнала dataChanged и model editStrategy OnFieldChanged
+        self.model_goods.dataChanged.connect(GoodsNamesList().update_goods_names_list)
 
         self.table_view_setup_logic()
         self.widgets_setup_ui()
@@ -67,7 +69,7 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
         tool_bar.setIconSize(QtCore.QSize(16,16))
         self.addToolBar(tool_bar)
 
-        self.act_debug = QtWidgets.QAction(QtGui.QIcon(f'{BASEDIR}/static/icons/bug.png'), 'debug', self)
+        self.act_debug = QtWidgets.QAction(QtGui.QIcon(f'{ICONS_DIR}bug.png'), 'debug', self)
         self.act_debug.triggered.connect(self.debug_action)
         self.act_add_many_purchases = QtWidgets.QAction('Кілька закупок')
         #todo сделать отдельным потоком это действие
@@ -90,24 +92,22 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
         setattr(self, model_name, model)
         self.data_cash.models_list.append(getattr(self, model_name))
 
-
-    def query_makers_setup(self):
+    def init_query_makers(self):
         self.goods_query = QueryMaker('goods')
         self.goods_query.set_WHERE_fields({'name':''})
 
         self.purchase_query = QueryMaker('purchase')
-        self.purchase_query.set_WHERE_fields({'purchase.date':INIT_NOW_MONTH, 'name': ''})
+        self.purchase_query.set_WHERE_fields({'date':INIT_NOW_MONTH, 'name': ''})
 
         self.orders_query = QueryMaker('orders')
-        self.orders_query.set_WHERE_fields({'orders.date':INIT_NOW_MONTH, 'name': ''})
-        self.orders_query.set_ORDER_BY_fields('orders.id', ascending=False)
+        self.orders_query.set_WHERE_fields({'date':INIT_NOW_MONTH, 'name': ''})
 
-        self.purchase_query_grouped = QueryMakerGroup('purchase', 'goods.id', BASE_TOTAL_PURCHASES)
-        self.purchase_query_grouped.set_WHERE_fields({'purchase.date': INIT_NOW_MONTH, 'name': ''})
+        self.purchase_query_grouped = QueryMakerGroupBy('purchase', 'goods.name', BASE_TOTAL_PURCHASES)
+        self.purchase_query_grouped.set_WHERE_fields({'date': INIT_NOW_MONTH, 'name': ''})
         self.purchase_query_grouped.set_ORDER_BY_fields('name')
 
-        self.orders_query_grouped = QueryMakerGroup('orders', 'goods.name', BASE_TOTAL_ORDERS)
-        self.orders_query_grouped.set_WHERE_fields({'name': '', 'orders.date': INIT_NOW_MONTH})
+        self.orders_query_grouped = QueryMakerGroupBy('orders', 'goods.name', BASE_TOTAL_ORDERS)
+        self.orders_query_grouped.set_WHERE_fields({'name': '', 'date': INIT_NOW_MONTH})
         self.orders_query_grouped.set_ORDER_BY_fields('name')
 
         self.profit_query = QueryMakerTemplate(AVG_PROFIT_STAT_TEMPLATE)
@@ -169,13 +169,13 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
         self.btn_statistics_profit.clicked.connect(self.btn_statistics_profit_clicked)
 
         # __________________________________TEXT_LAYER_________________________
-        self.date_filter.returnPressed.connect(self.date_filter_pressed)
+        self.lnedit_date_filter.returnPressed.connect(self.date_filter_pressed)
 
         self.checkbox_date_filter.setChecked(True)
         ch_box = self.checkbox_date_filter
         ch_box.clicked.connect(lambda: ch_box.setText('On') if ch_box.isChecked() else ch_box.setText('Off'))
         ch_box.clicked.connect(
-            lambda: self.date_filter.setEnabled(True) if ch_box.isChecked() else self.date_filter.setEnabled(False))
+            lambda: self.lnedit_date_filter.setEnabled(True) if ch_box.isChecked() else self.lnedit_date_filter.setEnabled(False))
         ch_box.clicked.connect(self.checkbox_filter_clicked)
 
         # ____________________________________ MODELS _________________________________
@@ -185,8 +185,7 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
 
 # _____________________________________ SIGNALS/ACTIONS ___________________________________________
     def debug_action(self):
-        a = 1 / 0
-        print('DEBUG IS EMPTY')
+        print('Debug info')
 
     def col_header_double_clicked(self, col:int):
         """Сортирует по двойному клику на колонке"""
@@ -249,28 +248,39 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
     def btn_statistics_purchase_clicked(self):
         """ Рассчитывает и отображает таблицу статистики по закупкам """
         self.update_name_filters() # обновляем фильтры имени
+        self.update_date_filters()
         if self.checkbox_date_filter.isChecked():
-            query = self.purchase_query_grouped.get_full_query_grouped('purchase.date', 'name')
+            query = self.purchase_query_grouped.get_full_query_grouped('date', 'name')
         else:
             query = self.purchase_query_grouped.get_full_query_grouped('name')
-        print(query)
         self.show_stat_table(query)
         self.calculate_statistic_buy(query)
         self.rename_tab(3, 'Purchases stat')
 
     def btn_statistics_order_clicked(self):
         self.update_name_filters()
+        self.update_date_filters()
         if self.checkbox_date_filter.isChecked():
-            query = self.orders_query_grouped.get_full_query_grouped('orders.date', 'name')
+            query = self.orders_query_grouped.get_full_query_grouped('date', 'name')
         else:
             query = self.orders_query_grouped.get_full_query_grouped('name')
-        print(query)
         self.show_stat_table(query)
         self.calculate_statistic_sell(query)
         self.rename_tab(3, 'Sells stat')
 
+    # def show_statistics(self, stat_name):
+    #     self.update_date_filters()
+    #     self.update_name_filters()
+    #     if stat_name == 'Purchases':
+    #
+    #     elif stat_name == 'Sells':
+    #
+    #     elif stat_name == 'Profit':
+    #
+
     def btn_statistics_profit_clicked(self):
         self.update_name_filters()
+        self.update_date_filters()
         if self.checkbox_date_filter.isChecked():
             query = self.profit_query.get_full_query('date', 'name')
         else:
@@ -297,7 +307,7 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
         self.draw_quick_stat_profit(res[0][0])
 
     def tab_changed(self, i):
-        self.__update_goods_names_list() #todo нужно вызывать этот метод после изменения данных в таблице goods
+        self.__update_goods_names_list()
         self.data_cash.reset_cell_info()
         self.refresh_completer()
         self.activate_filter()
@@ -380,38 +390,40 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
         self.lbl_quick_stat_profit.setText(f'total_avg_profit: \n{text}')
 
     def activate_filter_goods(self):
-        self.model_goods.setFilter(self.goods_query.get_WHERE_filter('name'))
+        self.model_goods.setFilter(self.goods_query.get_sqlRelationModel_filter('name'))
 
     def activate_filter_purchase(self):
         if self.checkbox_date_filter.isChecked():
-            self.model_purchase.setFilter(self.purchase_query.get_WHERE_filter('name', 'purchase.date'))
+            self.model_purchase.setFilter(self.purchase_query.get_sqlRelationModel_filter('name', 'date'))
         else:
-            self.model_purchase.setFilter(self.purchase_query.get_WHERE_filter('name'))
+            self.model_purchase.setFilter(self.purchase_query.get_sqlRelationModel_filter('name'))
 
     def activate_filter_orders(self):
         if self.checkbox_date_filter.isChecked():
-            self.model_orders.setFilter(self.orders_query.get_WHERE_filter('name', 'orders.date'))
+            self.model_orders.setFilter(self.orders_query.get_sqlRelationModel_filter('name', 'date'))
         else:
-            self.model_orders.setFilter(self.orders_query.get_WHERE_filter('name'))
+            self.model_orders.setFilter(self.orders_query.get_sqlRelationModel_filter('name'))
+
 
     def update_name_filters(self):
         name = self.make_safe_filter_string(self.lnedit_finder.text())
         # TODO отрефакторить через цикл
-        self.goods_query.set_WHERE_fields({'name': name})
-        self.purchase_query.set_WHERE_fields({'name': name})
-        self.orders_query.set_WHERE_fields({'name': name})
-        self.purchase_query_grouped.set_WHERE_fields({'name':name})
-        self.orders_query_grouped.set_WHERE_fields({'name':name})
-        self.profit_query.set_WHERE_fields({'name':name})
+        self.goods_query.set_name_like_filter(name)
+        self.purchase_query.set_name_like_filter(name)
+        self.orders_query.set_name_like_filter(name)
+        self.purchase_query_grouped.set_name_like_filter(name)
+        self.orders_query_grouped.set_name_like_filter(name)
+        self.profit_query.set_name_like_filter(name)
 
     def update_date_filters(self):
         # TODO тоже отрефакторить через цикл
-        date = self.make_safe_filter_string(self.date_filter.text())
-        self.orders_query.set_WHERE_fields({'orders.date': date})
-        self.purchase_query.set_WHERE_fields({'purchase.date': date})
-        self.purchase_query_grouped.set_WHERE_fields({'purchase.date': date})
-        self.orders_query_grouped.set_WHERE_fields({'orders.date': date})
-        self.profit_query.set_WHERE_fields({'date': date})
+        date = self.make_safe_filter_string(self.lnedit_date_filter.text())
+        self.orders_query.set_date_like_filter(date)
+        self.purchase_query.set_date_like_filter(date)
+        # self.purchase_query_grouped.set_WHERE_fields({'purchase.date': date})
+        self.purchase_query_grouped.set_date_like_filter(date)
+        self.orders_query_grouped.set_date_like_filter(date)
+        self.profit_query.set_date_like_filter(date)
 
     def refresh_completer(self):
         self.lnedit_finder.setCompleter(GoodsNamesList().create_completer())
