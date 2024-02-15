@@ -20,7 +20,8 @@ HEADERS_GOODS = ['Name', 'amount']
 HEADERS_ORDERS = ['Name', 'sell_price', 'date']
 HEADERS_PURCHASE = ['Name', 'buy_price', 'date']
 
-INIT_NOW_MONTH = NOW_DATE.strftime('%Y-%m')
+INIT_TWO_MONTH_AGO = get_former_date(TWO_MONTH_IN_DAYS).strftime('%Y-%m-%d')
+INIT_NOW_MONTH = NOW_DATE.strftime('%Y-%m-%d')
 INIT_NOW_DAY = NOW_DATE.strftime('%Y-%m-%d')
 
 

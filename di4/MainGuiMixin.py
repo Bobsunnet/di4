@@ -1,9 +1,9 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMainWindow, QTableView, QHeaderView, QTabWidget, QLineEdit, QPushButton, QLabel, QCheckBox, \
-    QHBoxLayout, QVBoxLayout, QWidget, QSplitter
+    QHBoxLayout, QVBoxLayout, QWidget, QSplitter, QDateEdit
 
 from di4.MyWidgets import MyTableView
-from di4.settings.Constants import INIT_NOW_MONTH
+from di4.settings.Constants import INIT_NOW_MONTH, INIT_TWO_MONTH_AGO
 
 
 class MainGuiMixin(QMainWindow):
@@ -77,10 +77,15 @@ class MainGuiMixin(QMainWindow):
         self.label_info = QLabel()
         self.label_info.setText('obj_id = None')
 
-        self.lnedit_date_filter = QLineEdit()
-        self.lnedit_date_filter.setPlaceholderText('yyyy-mm')
-        self.lnedit_date_filter.setText(INIT_NOW_MONTH)
-        self.lnedit_date_filter.setMaximumWidth(100)
+        self.lnedit_date_start_filter = QLineEdit()
+        self.lnedit_date_start_filter.setPlaceholderText('yyyy-mm')
+        self.lnedit_date_start_filter.setText(INIT_TWO_MONTH_AGO)
+        self.lnedit_date_start_filter.setMaximumWidth(100)
+
+        self.lnedit_date_end_filter = QLineEdit()
+        self.lnedit_date_end_filter.setPlaceholderText('yyyy-mm')
+        self.lnedit_date_end_filter.setText(INIT_NOW_MONTH)
+        self.lnedit_date_end_filter.setMaximumWidth(100)
 
         self.lbl_quick_stat_buy = QLabel()
         self.lbl_quick_stat_buy.setProperty('LabelStat', True)
@@ -111,7 +116,8 @@ class MainGuiMixin(QMainWindow):
         properties_layout = QHBoxLayout()
 
         label_date_layout = QVBoxLayout()
-        label_date_layout.addWidget(self.lnedit_date_filter)
+        label_date_layout.addWidget(self.lnedit_date_start_filter)
+        label_date_layout.addWidget(self.lnedit_date_end_filter)
         label_date_layout.addWidget(self.checkbox_date_filter)
         label_date_layout.addWidget(self.label_info)
 

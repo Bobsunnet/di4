@@ -55,8 +55,8 @@ class QueryMaker:
     def _get_date_between_filter(self):
         date_interval = self.where_fields.get('date_between')
         if date_interval:
-            return f'date BETWEEN date("{date_interval.get_date_start()}") ' \
-                   f'AND date("{date_interval.get_date_end()}")'
+            return f'date BETWEEN "{date_interval.get_date_start()}" ' \
+                   f'AND "{date_interval.get_date_end()}"'
         return ''
 
     def _get_filters(self, *filters_names):
@@ -104,6 +104,7 @@ class QueryMakerGroupBy(QueryMaker):
     def __init__(self, table_name: str, group_by: str, head: str = ''):
         super().__init__(table_name, head)
         self.group_by = group_by
+        self.set_ORDER_BY_fields('name')
 
     def get_full_query_grouped(self, *where_args, limit=0, ordered=True):
         where_filter = self.get_WHERE_filter(*where_args)
@@ -125,25 +126,10 @@ class QueryMakerTemplate(QueryMaker):
 
 
 def testQueryOrders():
-    # ordersQueryMaker = QueryMaker('orders')
-    # ordersQueryMaker.set_name_like_filter('')
-    # ordersQueryMaker.set_date_like_filter('')
-    # filter_query = ordersQueryMaker.get_WHERE_filter()
-    #
-    # print(filter_query)
     test_qr = QueryMakerTemplate(const.AVG_PROFIT_STAT_TEMPLATE)
     print(test_qr.get_full_query())
 
 
-
-
 if __name__ == '__main__':
     testQueryOrders()
-    # purchase_query_stat = QueryMakerGroup('purchase', 'goods.id', const.BASE_TOTAL_PURCHASES)
-    # purchase_query_stat.set_WHERE_fields({'purchase.date': '2023-03', 'name': ''})
-    # purchase_query_stat.set_ORDER_BY_fields('name')
-    # print(purchase_query_stat.get_full_query_grouped('purchase.date'))
-    # temp_query = const.AVG_PROFIT_STAT_TEMPLATE
-    # q_m_templ = QueryMakerTemplate(temp_query)
-    # q_m_templ.set_WHERE_fields({'name':'e60', 'date':'2023-04'})
-    # print(q_m_templ.get_full_query('name', 'date'))
+
