@@ -5,14 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="db8a78d0-5e6d-4089-8f79-f27ede870314" name="Changes" comment="beta_1.04. изменения для обновления комплитера и комбобокса через один класс GoodsNamesList">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/di4/GoodsNamesListUpdater.py" beforeDir="false" afterPath="$PROJECT_DIR$/di4/GoodsNamesListUpdater.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/di4/MainGuiMixin.py" beforeDir="false" afterPath="$PROJECT_DIR$/di4/MainGuiMixin.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/di4/Utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/di4/Utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/di4/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/di4/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/di4/settings/querymaker.py" beforeDir="false" afterPath="$PROJECT_DIR$/di4/settings/querymaker.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/di4/settings/sql_pyqt.py" beforeDir="false" afterPath="$PROJECT_DIR$/di4/settings/sql_pyqt.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tasks.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/di4/settings/bampera_test.db" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -57,6 +53,7 @@
   <component name="RunManager" selected="Python.main_root">
     <configuration name="GoodsNamesListUpdater" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="di4" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -78,6 +75,7 @@
     </configuration>
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="di4" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -99,6 +97,7 @@
     </configuration>
     <configuration name="main_root" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="di4" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -120,6 +119,7 @@
     </configuration>
     <configuration name="querymaker" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="di4" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -141,6 +141,7 @@
     </configuration>
     <configuration name="test" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="di4" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -241,6 +242,26 @@
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
+    <option name="RECENT_FILTERS">
+      <map>
+        <entry key="Branch">
+          <value>
+            <list>
+              <RecentGroup>
+                <option name="FILTER_VALUES">
+                  <option value="HEAD" />
+                </option>
+              </RecentGroup>
+              <RecentGroup>
+                <option name="FILTER_VALUES">
+                  <option value="origin/new_features" />
+                </option>
+              </RecentGroup>
+            </list>
+          </value>
+        </entry>
+      </map>
+    </option>
     <option name="TAB_STATES">
       <map>
         <entry key="MAIN">
