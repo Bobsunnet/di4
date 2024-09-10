@@ -422,6 +422,21 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
     def action_add_new_goods(self):
         dbConnector.insert_into_goods()
 
+    # _________________________________ DB OPERATIONS ______________________________
+    def insert_operation(self,
+                         model: sql_pyqt.QSqlRelationalTableModel,
+                         goods_id: int,
+                         amount: int = 1,
+                         price: int | float = 0,
+                         date=const.INIT_NOW_DAY):
+        for i in range(amount):
+            row = model.rowCount()
+            model.insertRow(row)
+            model.setData(model.index(row, 1), goods_id)
+            model.setData(model.index(row, 2), price)
+            model.setData(model.index(row, 3), date)
+            model.submitAll()
+
     # _________________________________ ADD PURCHASE _____________________________________
     def btn_add_purchase_clicked(self):
         try:
@@ -431,22 +446,18 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
             goods_id = self.get_row_id()
             if not goods_id:
                 raise MyExceptions.GeneralException('Спочатку оберіть товар який хочете додати з таблиці "goods"')
+
             self.add_purchase(goods_id)
+
         except Exception as ex:
             self.draw_error_message('Помилка роботи з таблицею', exception=ex)
             logging.error(ex)
 
     def add_purchase(self, goods_id: int, amount: int = 1, price: int | float = 0, date=const.INIT_NOW_DAY):
-        """Добавляет запись в таблицу покупок"""
-        purchases_list = [(goods_id, price, date) for _ in range(amount)]
-        query = f'''INSERT INTO {dbConnector.TABLE_PURCHASE} VALUES (NULL, ?, ?, ?)'''
-        dbConnector.many_execution(query, purchases_list)
-
-        # !!! временно отключено автоувеличение запасов на складе после покупки !!!
-        # dbConnector.update_goods_amount(goods_id, amount)
-
-        self.tab_widget.setCurrentIndex(1)
-        self.refresh_table(1)
+        model = self.data_cash.models_list[const.MODEL_PURCHASE]
+        self.insert_operation(model, goods_id, amount, price, date)
+        self.tab_widget.setCurrentIndex(const.MODEL_PURCHASE)
+        self.refresh_table(const.MODEL_PURCHASE)
 
     def action_add_many_purchases(self):
         """Добавляет несколько записей в таблицу покупок"""
@@ -474,17 +485,10 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
             logging.error(ex)
 
     def add_orders(self, goods_id: int, amount: int = 1, price: int | float = 0, date=const.INIT_NOW_DAY):
-        model: sql_pyqt.QSqlRelationalTableModel = self.data_cash.models_list[const.MODEL_ORDERS]
-        row = model.rowCount()
-        for i in range(amount):
-            model.insertRow(row)
-            model.setData(model.index(row, 1), goods_id)
-            model.setData(model.index(row, 2), price)
-            model.setData(model.index(row, 3), date)
-        model.submitAll()
-
+        model = self.data_cash.models_list[const.MODEL_ORDERS]
+        self.insert_operation(model, goods_id, amount, price, date)
         self.update_goods_amount(goods_id, amount)
-        self.tab_widget.setCurrentIndex(2)
+        self.tab_widget.setCurrentIndex(const.MODEL_ORDERS)
 
     def update_goods_amount(self, goods_id:int, amount:int):
         model: sql_pyqt.QSqlRelationalTableModel = self.data_cash.models_list[const.MODEL_GOODS]

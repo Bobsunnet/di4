@@ -54,37 +54,10 @@ def insert_into_goods(name='', amount=0):
     return general_execution(insert_query)
 
 
-def insert_into_purchase(goods_id: int, buy_price: int | float = 0, date: datetime = NOW_DATE):
-    insert_query = f''' INSERT INTO {TABLE_PURCHASE} (goods_id, buy_price, date)
-            VALUES ({goods_id}, {buy_price}, '{date}');'''
-    return general_execution(insert_query)
-
-
 def update_goods_amount(_id:int, amount:int):
     """ :param amount: if negative - than decrease the amount value """
     update_query = f'''UPDATE {TABLE_GOODS} SET amount = amount + {amount} WHERE id = {_id};'''
     return general_execution(update_query)
-
-
-def update_order_price(id:int, price:int | float):
-    update_query = f'''
-        UPDATE {TABLE_ORDERS}
-        SET sell_price = {price}
-        WHERE id = {id};'''
-    return general_execution(update_query)
-
-
-def update_order_date(id:int, date: str):
-    update_query = f'''
-        UPDATE {TABLE_ORDERS}
-        SET date = '{date}'
-        WHERE id = {id};'''
-    return general_execution(update_query)
-
-
-def delete_row(row_id, table):
-    del_query = f'DELETE FROM {table} WHERE id = {row_id};'
-    return general_execution(del_query)
 
 
 def select_goods_name():
