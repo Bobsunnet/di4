@@ -60,12 +60,6 @@ def insert_into_purchase(goods_id: int, buy_price: int | float = 0, date: dateti
     return general_execution(insert_query)
 
 
-def insert_into_orders(goods_id: int, sell_price: int | float = 0, date: datetime = NOW_DATE):
-    insert_query = f'''INSERT INTO {TABLE_ORDERS} (goods_id, sell_price, date) 
-            VALUES ({goods_id}, {sell_price},'{date}'); '''
-    return general_execution(insert_query)
-
-
 def update_goods_amount(_id:int, amount:int):
     """ :param amount: if negative - than decrease the amount value """
     update_query = f'''UPDATE {TABLE_GOODS} SET amount = amount + {amount} WHERE id = {_id};'''

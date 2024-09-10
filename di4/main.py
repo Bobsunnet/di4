@@ -2,15 +2,17 @@ import os
 import re
 import sys
 import logging
+from logging import raiseExceptions
 
 from PyQt5 import QtWidgets, QtCore, QtGui
-from PyQt5.QtCore import Qt, QSortFilterProxyModel
+from PyQt5.QtCore import Qt, QSortFilterProxyModel, QModelIndex
 
 from di4 import dbConnector
 from di4.settings import sql_pyqt
-from di4.settings.Constants import (BASE_TOTAL_PURCHASES, BASE_TOTAL_ORDERS, AVG_PROFIT_STAT_TEMPLATE,
-                                    HEADERS_GOODS, HEADERS_PURCHASE, HEADERS_ORDERS,
-                                    INIT_NOW_MONTH, INIT_TWO_MONTH_AGO, INIT_NOW_DAY)
+# from di4.settings.Constants import (BASE_TOTAL_PURCHASES, BASE_TOTAL_ORDERS, AVG_PROFIT_STAT_TEMPLATE,
+#                                     HEADERS_GOODS, HEADERS_PURCHASE, HEADERS_ORDERS,
+#                                     INIT_NOW_MONTH, INIT_TWO_MONTH_AGO, INIT_NOW_DAY)
+from di4.settings import Constants as const
 from di4.settings import MyExceptions
 from di4.settings.querymaker import QueryMaker, QueryMakerGroupBy, QueryMakerTemplate
 from di4.settings.backuper import write_backup
@@ -50,9 +52,9 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
         self.init_query_makers()
         self.data_cash = CurrentDataOperator()
 
-        self.model_init(dbConnector.TABLE_GOODS, HEADERS_GOODS, 'model_goods')
-        self.model_init(dbConnector.TABLE_PURCHASE, HEADERS_PURCHASE, 'model_purchase')
-        self.model_init(dbConnector.TABLE_ORDERS, HEADERS_ORDERS, 'model_orders')
+        self.model_init(dbConnector.TABLE_GOODS, const.HEADERS_GOODS, 'model_goods')
+        self.model_init(dbConnector.TABLE_PURCHASE, const.HEADERS_PURCHASE, 'model_purchase')
+        self.model_init(dbConnector.TABLE_ORDERS, const.HEADERS_ORDERS, 'model_orders')
         #todo срабатывает дважды из-за сигнала dataChanged и model editStrategy OnFieldChanged
         self.model_goods.dataChanged.connect(GoodsNamesList().update_goods_names_list)
 
@@ -94,9 +96,9 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
 
     def init_query_makers(self):
         self.relationModel_query_maker = QueryMaker('table_name')
-        self.purchase_query_grouped = QueryMakerGroupBy('purchase', 'goods.name', BASE_TOTAL_PURCHASES)
-        self.orders_query_grouped = QueryMakerGroupBy('orders', 'goods.name', BASE_TOTAL_ORDERS)
-        self.profit_stat_query = QueryMakerTemplate(AVG_PROFIT_STAT_TEMPLATE)
+        self.purchase_query_grouped = QueryMakerGroupBy('purchase', 'goods.name', const.BASE_TOTAL_PURCHASES)
+        self.orders_query_grouped = QueryMakerGroupBy('orders', 'goods.name', const.BASE_TOTAL_ORDERS)
+        self.profit_stat_query = QueryMakerTemplate(const.AVG_PROFIT_STAT_TEMPLATE)
 
         self.query_makers = [
             self.relationModel_query_maker,
@@ -106,7 +108,7 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
         ]
 
         for q_maker in self.query_makers:
-            q_maker.set_date_between_filter(INIT_TWO_MONTH_AGO, INIT_NOW_MONTH)
+            q_maker.set_date_between_filter(const.INIT_TWO_MONTH_AGO, const.INIT_NOW_MONTH)
             q_maker.set_name_like_filter('')
 
     def table_view_setup_logic(self):
@@ -187,6 +189,8 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
 
     def debug_action(self):
         print('Debug info')
+        model = self.data_cash.models_list[1]
+        print(model.data(model.index(5, 0)))
 
     def col_header_double_clicked(self, col:int):
         """Сортирует по двойному клику на колонке"""
@@ -432,7 +436,7 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
             self.draw_error_message('Помилка роботи з таблицею', exception=ex)
             logging.error(ex)
 
-    def add_purchase(self, goods_id: int, amount: int = 1, price: int | float = 0, date=INIT_NOW_DAY):
+    def add_purchase(self, goods_id: int, amount: int = 1, price: int | float = 0, date=const.INIT_NOW_DAY):
         """Добавляет запись в таблицу покупок"""
         purchases_list = [(goods_id, price, date) for _ in range(amount)]
         query = f'''INSERT INTO {dbConnector.TABLE_PURCHASE} VALUES (NULL, ?, ?, ?)'''
@@ -464,17 +468,38 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
             goods_id = self.get_row_id()
             if self.tab_widget.currentIndex() != 0 or not goods_id:
                 raise MyExceptions.GeneralException('Додавати потрібно з таблиці "goods"')
-            self.add_order(goods_id)
+            self.add_orders(goods_id)
         except Exception as ex:
             self.draw_error_message('Помилка роботи з таблицею', exception=ex)
             logging.error(ex)
 
-    def add_order(self, goods_id: int, amount: int = 1, price: int | float = 0, date=INIT_NOW_DAY):
+    def add_orders(self, goods_id: int, amount: int = 1, price: int | float = 0, date=const.INIT_NOW_DAY):
+        model: sql_pyqt.QSqlRelationalTableModel = self.data_cash.models_list[const.MODEL_ORDERS]
+        row = model.rowCount()
         for i in range(amount):
-            dbConnector.insert_into_orders(goods_id, price, date)
-        dbConnector.update_goods_amount(goods_id, -amount)
+            model.insertRow(row)
+            model.setData(model.index(row, 1), goods_id)
+            model.setData(model.index(row, 2), price)
+            model.setData(model.index(row, 3), date)
+        model.submitAll()
 
+        self.update_goods_amount(goods_id, amount)
         self.tab_widget.setCurrentIndex(2)
+
+    def update_goods_amount(self, goods_id:int, amount:int):
+        model: sql_pyqt.QSqlRelationalTableModel = self.data_cash.models_list[const.MODEL_GOODS]
+        goods_index: list[QModelIndex] = model.match(model.index(0, 0),
+                                                                 Qt.DisplayRole,
+                                                                 goods_id,
+                                                                 hits=1,
+                                                                 flags=Qt.MatchExactly)
+        if goods_index == -1:
+            raise MyExceptions.InvalidDataField("Невірний id товару")
+
+        row:int = goods_index[0].row()
+        amount = model.data(model.index(row,2)) - amount
+        model.setData(model.index(row, 2), amount)
+        model.submitAll()
 
     def show_stat_table(self, base_query):
         """ Создает модель на основе SQL запроса и отображает ее в таблице"""

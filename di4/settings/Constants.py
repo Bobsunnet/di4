@@ -24,6 +24,9 @@ INIT_TWO_MONTH_AGO = get_former_date(TWO_MONTH_IN_DAYS).strftime('%Y-%m-%d')
 INIT_NOW_MONTH = NOW_DATE.strftime('%Y-%m-%d')
 INIT_NOW_DAY = NOW_DATE.strftime('%Y-%m-%d')
 
+MODEL_GOODS = 0
+MODEL_PURCHASE = 1
+MODEL_ORDERS = 2
 
 BASE_QUERY_ORDERS_ALL = '''
             SELECT name,
