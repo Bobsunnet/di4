@@ -1,7 +1,6 @@
 from PyQt5.QtCore import Qt
 from PyQt5 import QtWidgets
 
-from di4 import dbConnector
 from di4.settings import MyExceptions
 from di4.settings.Constants import VALIDATOR_DIGITS, NOW_DATE
 from di4.GoodsNamesListUpdater import GoodsNamesList
@@ -11,7 +10,7 @@ INIT_NOW_DAY = NOW_DATE.strftime('%Y-%m-%d')
 
 
 class MyTableView(QtWidgets.QTableView):
-    """ Добавляет """
+    """ """
     def __init__(self, mainWindow):
         super(MyTableView, self).__init__()
         self.parent_window = mainWindow # the mainWindow instance
@@ -22,8 +21,8 @@ class MyTableView(QtWidgets.QTableView):
         menu = QtWidgets.QMenu()
 
         # Add menu options
-        add_purchase_option = menu.addAction('Add Purchase(in testing...)')
-        add_order_option = menu.addAction('Add Order(in testing...)')
+        add_purchase_option = menu.addAction('Add Purchase')
+        add_order_option = menu.addAction('Add Order')
 
         # Menu option events
         add_purchase_option.triggered.connect(self.parent_window.btn_add_purchase_clicked)
@@ -86,11 +85,13 @@ class AddPurchaseWidget(QtWidgets.QWidget):
     def get_input_fields_data(self):
         """ Возвращает данные с полей окна "Add_many_Purchase"
         :return: goods_name, price, amount, date """
+
         goods_name = self.combox_goods_names.currentText()
         date = self.field_date.text()
         amount_field = self.field_amount.text()
         if not amount_field:
             raise MyExceptions.InvalidDataField('Невірно заповнене поле')
+
         amount = int(amount_field)
         price = float(self.field_price.text()) if self.field_price.text() else 0
         return goods_name, price, amount, date
@@ -99,11 +100,3 @@ class AddPurchaseWidget(QtWidgets.QWidget):
         self.combox_goods_names.clear()
         self.combox_goods_names.addItems(self.names_list_updater.get_goods_names_list())
         self.refresh_completer()
-
-
-def main():
-    pass   
-
-
-if __name__ == '__main__': 
-    main()

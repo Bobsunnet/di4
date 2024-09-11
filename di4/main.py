@@ -40,9 +40,6 @@ TABLE_NAMES_LIST = [dbConnector.TABLE_GOODS, dbConnector.TABLE_PURCHASE, dbConne
 class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
-        self.model_purchase = None
-        self.model_orders = None
-
         self.init_query_makers()
         self.data_cash = CurrentDataOperator()
 
@@ -50,7 +47,7 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
         self.model_init(dbConnector.TABLE_PURCHASE, const.HEADERS_PURCHASE, 'model_purchase')
         self.model_init(dbConnector.TABLE_ORDERS, const.HEADERS_ORDERS, 'model_orders')
         # todo срабатывает дважды из-за сигнала dataChanged и model editStrategy OnFieldChanged
-        self.model_goods.dataChanged.connect(GoodsNamesList().update_goods_names_list)
+        self.data_cash.models_list[const.MODEL_GOODS].dataChanged.connect(GoodsNamesList().update_goods_names_list)
 
         self.table_view_setup_logic()
         self.widgets_setup_ui()
@@ -85,8 +82,7 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
             model.setHeaderData(i + 1, Qt.Orientation.Horizontal, name)
 
         model.select()
-        setattr(self, model_name, model)
-        self.data_cash.models_list.append(getattr(self, model_name))
+        self.data_cash.models_list.append(model)
 
     def init_query_makers(self):
         self.relationModel_query_maker = QueryMaker('table_name')
@@ -104,29 +100,6 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
         for q_maker in self.query_makers:
             q_maker.set_date_between_filter(const.INIT_TWO_MONTH_AGO, const.INIT_NOW_MONTH)
             q_maker.set_name_like_filter('')
-
-    def table_view_setup_logic(self):
-        self.create_table_view(getattr(self, 'model_goods'), 'table_view_goods')
-        self.create_table_view(getattr(self, 'model_purchase'), 'table_view_purchase')
-        self.create_table_view(getattr(self, 'model_orders'), 'table_view_orders')
-
-        self.table_view_stat.horizontalHeader().setSectionResizeMode(1)
-        self.table_view_stat.horizontalHeader().sectionDoubleClicked.connect(self.col_header_double_clicked)
-
-        self.table_view_debug.horizontalHeader().setSectionResizeMode(3)
-        self.table_view_debug.horizontalHeader().sectionDoubleClicked.connect(self.col_header_double_clicked)
-
-        self.table_view_goods.selectionModel().currentChanged.connect(self.cell_highlighted)
-        self.table_view_goods.horizontalHeader().setProperty('goods', True)
-        self.table_view_goods.horizontalHeader().sectionDoubleClicked.connect(self.col_header_double_clicked)
-
-        self.table_view_purchase.selectionModel().currentChanged.connect(self.cell_highlighted)
-        self.table_view_purchase.horizontalHeader().setProperty('purchases', True)
-        self.table_view_purchase.horizontalHeader().sectionDoubleClicked.connect(self.col_header_double_clicked)
-
-        self.table_view_orders.selectionModel().currentChanged.connect(self.cell_highlighted)
-        self.table_view_orders.horizontalHeader().setProperty('orders', True)
-        self.table_view_orders.horizontalHeader().sectionDoubleClicked.connect(self.col_header_double_clicked)
 
     def widgets_setup_connections(self):
         # ____________________________________ TAB WIDGET SETUP _________________________
@@ -170,8 +143,9 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
         ch_box.clicked.connect(self.checkbox_filter_clicked)
 
         # ____________________________________ MODELS _________________________________
-        self.model_purchase.setRelation(1, sql_pyqt.QSqlRelation("goods", 'id', 'name'))
-        self.model_orders.setRelation(1, sql_pyqt.QSqlRelation("goods", 'id', 'name'))
+        self.get_model(const.MODEL_PURCHASE).setRelation(1, sql_pyqt.QSqlRelation("goods", 'id', 'name'))
+        self.get_model(const.MODEL_ORDERS).setRelation(1, sql_pyqt.QSqlRelation("goods", 'id', 'name'))
+
 
     # _____________________________________ SIGNALS/ACTIONS ___________________________________________
     def set_lnedit_date_filters_enable(self, isEnable):
@@ -180,6 +154,9 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
 
     def debug_action(self):
         print('Debug info')
+
+    def get_model(self, model_num:int)-> sql_pyqt.QSqlTableModel | sql_pyqt.QSqlRelationalTableModel:
+        return self.data_cash.models_list[model_num]
 
     def col_header_double_clicked(self, col: int):
         """Сортирует по двойному клику на колонке"""
@@ -357,19 +334,19 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
         self.lbl_quick_stat_profit.setText(f'total_avg_profit: \n{text}')
 
     def activate_filter_goods(self):
-        self.model_goods.setFilter(self.relationModel_query_maker.get_sqlRelationModel_filter('name'))
+        self.get_model(const.MODEL_GOODS).setFilter(self.relationModel_query_maker.get_sqlRelationModel_filter('name'))
 
     def activate_filter_purchase(self):
         if self.checkbox_date_filter.isChecked():
-            self.model_purchase.setFilter(self.relationModel_query_maker.get_sqlRelationModel_filter('name', 'date'))
+            self.get_model(const.MODEL_PURCHASE).setFilter(self.relationModel_query_maker.get_sqlRelationModel_filter('name', 'date'))
         else:
-            self.model_purchase.setFilter(self.relationModel_query_maker.get_sqlRelationModel_filter('name'))
+            self.get_model(const.MODEL_PURCHASE).setFilter(self.relationModel_query_maker.get_sqlRelationModel_filter('name'))
 
     def activate_filter_orders(self):
         if self.checkbox_date_filter.isChecked():
-            self.model_orders.setFilter(self.relationModel_query_maker.get_sqlRelationModel_filter('name', 'date'))
+            self.get_model(const.MODEL_ORDERS).setFilter(self.relationModel_query_maker.get_sqlRelationModel_filter('name', 'date'))
         else:
-            self.model_orders.setFilter(self.relationModel_query_maker.get_sqlRelationModel_filter('name'))
+            self.get_model(const.MODEL_ORDERS).setFilter(self.relationModel_query_maker.get_sqlRelationModel_filter('name'))
 
     def update_name_filters(self):
         name = self.make_safe_filter_string(self.lnedit_finder.text())

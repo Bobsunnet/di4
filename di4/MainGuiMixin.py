@@ -1,9 +1,9 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMainWindow, QTableView, QHeaderView, QTabWidget, QLineEdit, QPushButton, QLabel, QCheckBox, \
-    QHBoxLayout, QVBoxLayout, QWidget, QSplitter, QDateEdit
+    QHBoxLayout, QVBoxLayout, QWidget, QSplitter
 
 from di4.MyWidgets import MyTableView
-from di4.settings.Constants import INIT_NOW_MONTH, INIT_TWO_MONTH_AGO
+from di4.settings import Constants as const
 
 
 class MainGuiMixin(QMainWindow):
@@ -79,12 +79,12 @@ class MainGuiMixin(QMainWindow):
 
         self.lnedit_date_start_filter = QLineEdit()
         self.lnedit_date_start_filter.setPlaceholderText('yyyy-mm')
-        self.lnedit_date_start_filter.setText(INIT_TWO_MONTH_AGO)
+        self.lnedit_date_start_filter.setText(const.INIT_TWO_MONTH_AGO)
         self.lnedit_date_start_filter.setMaximumWidth(100)
 
         self.lnedit_date_end_filter = QLineEdit()
         self.lnedit_date_end_filter.setPlaceholderText('yyyy-mm')
-        self.lnedit_date_end_filter.setText(INIT_NOW_MONTH)
+        self.lnedit_date_end_filter.setText(const.INIT_NOW_MONTH)
         self.lnedit_date_end_filter.setMaximumWidth(100)
 
         self.lbl_quick_stat_buy = QLabel()
@@ -158,14 +158,29 @@ class MainGuiMixin(QMainWindow):
 
         self.setCentralWidget(main_layout_widget)
 
+    def table_view_setup_logic(self):
+        self.create_table_view(self.get_model(const.MODEL_GOODS), 'table_view_goods')
+        self.create_table_view(self.get_model(const.MODEL_PURCHASE), 'table_view_purchase')
+        self.create_table_view(self.get_model(const.MODEL_ORDERS), 'table_view_orders')
+
+        self.table_view_stat.horizontalHeader().setSectionResizeMode(1)
+        self.table_view_stat.horizontalHeader().sectionDoubleClicked.connect(self.col_header_double_clicked)
+
+        self.table_view_debug.horizontalHeader().setSectionResizeMode(3)
+        self.table_view_debug.horizontalHeader().sectionDoubleClicked.connect(self.col_header_double_clicked)
+
+        self.table_view_goods.selectionModel().currentChanged.connect(self.cell_highlighted)
+        self.table_view_goods.horizontalHeader().setProperty('goods', True)
+        self.table_view_goods.horizontalHeader().sectionDoubleClicked.connect(self.col_header_double_clicked)
+
+        self.table_view_purchase.selectionModel().currentChanged.connect(self.cell_highlighted)
+        self.table_view_purchase.horizontalHeader().setProperty('purchases', True)
+        self.table_view_purchase.horizontalHeader().sectionDoubleClicked.connect(self.col_header_double_clicked)
+
+        self.table_view_orders.selectionModel().currentChanged.connect(self.cell_highlighted)
+        self.table_view_orders.horizontalHeader().setProperty('orders', True)
+        self.table_view_orders.horizontalHeader().sectionDoubleClicked.connect(self.col_header_double_clicked)
+
     def setup_ui(self):
         self.setWindowTitle('Table Main Window')
         self.setMinimumSize(1000, 600)
-
-
-def main():
-    pass   
-
-
-if __name__ == '__main__': 
-    main()
