@@ -80,12 +80,12 @@ class MainGuiMixin(QMainWindow):
         self.lnedit_date_start_filter = QLineEdit()
         self.lnedit_date_start_filter.setPlaceholderText('yyyy-mm')
         self.lnedit_date_start_filter.setText(const.INIT_TWO_MONTH_AGO)
-        self.lnedit_date_start_filter.setMaximumWidth(100)
+        self.lnedit_date_start_filter.setMaximumWidth(200)
 
         self.lnedit_date_end_filter = QLineEdit()
         self.lnedit_date_end_filter.setPlaceholderText('yyyy-mm')
         self.lnedit_date_end_filter.setText(const.INIT_NOW_MONTH)
-        self.lnedit_date_end_filter.setMaximumWidth(100)
+        self.lnedit_date_end_filter.setMaximumWidth(200)
 
         self.lbl_quick_stat_buy = QLabel()
         self.lbl_quick_stat_buy.setProperty('LabelStat', True)

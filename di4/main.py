@@ -59,12 +59,15 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
 
     def tool_bar_setup(self):
         tool_bar = QtWidgets.QToolBar('Main toolbar')
-        tool_bar.setIconSize(QtCore.QSize(16, 16))
+        tool_bar.setIconSize(QtCore.QSize(24, 24))
         self.addToolBar(tool_bar)
 
         self.act_debug = QtWidgets.QAction(QtGui.QIcon(f'{ICONS_DIR}bug.png'), 'debug', self)
         self.act_debug.triggered.connect(self.debug_action)
         self.act_add_many_purchases = QtWidgets.QAction('Кілька закупок')
+        font = self.act_add_many_purchases.font()
+        font.setPixelSize(24)
+        self.act_add_many_purchases.setFont(font)
         # todo сделать отдельным потоком это действие
         self.act_add_many_purchases.triggered.connect(self.btn_add_many_purchases_clicked)
 

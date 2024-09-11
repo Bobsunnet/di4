@@ -7,7 +7,7 @@ QToolBar {
 
 QComboBox
 {
-    font-size: 14px;
+    font-size: 18px;
     font-family: Rubik;
     background-color: #eeeeee;
     border-style: solid;
@@ -17,7 +17,11 @@ QComboBox
 }
 
 QAction {
-    font-size: 14px;
+    font-size: 18px;
+}
+
+QLabel {
+    font-size: 20px;
 }
 
 QComboBox:hover, QPushButton:hover
@@ -30,32 +34,33 @@ QTableView {
     color: black;
     gridline-color: black;
     border-color: rgb(242, 128, 133);
-    font: 14px;
+    font: 20px;
 }
+
 QHeaderView {
-    font-size: 15px;
+    font-size: 22px;
 }
 
 QTableView QTableCornerButton::section {
     background: #d6e5e5;
-    border: 1px outset rgb(31, 31, 31);
+    border: 2px outset rgb(31, 31, 31);
 }
 
 QHeaderView::section {
     background-color: #e6e5e5;
     color: #1C2025;
-    height: 30px;
-    font: 13px;
+    height: 40px;
+    font: 18px;
 }
 
 QTabWidget {
-    font-size: 16px;
+    font-size: 22px;
 }
 
 
 QLabel#label_info {
-    font: 16px sans-serif;
-    font-size: 13px;
+    font: 20px sans-serif;
+    font-size: 18px;
     background-color: #f3f3d3;
     border-style: outset;
     border-width: 1px;
@@ -68,7 +73,7 @@ QLabel#label_info {
     border-width: 1px;
     border-radius: 4px;
     border-color: #1C3045;
-    font-size: 16px;
+    font-size: 18px;
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
 }
 
@@ -82,7 +87,7 @@ QLabel#stat_sell {
 
 
 QLineEdit {
-    font-size: 16px;
+    font-size: 20px;
     font-family: Rubik;
     background-color: #e3e8f0;
     border: 1px solid #1C3025;
@@ -99,20 +104,20 @@ QPushButton {
     background-color: #e3edf0;
     color: #1C2025;
     font-family: Helvetica, sans-serif;
-    font-size: 12px;
+    font-size: 18px;
     margin:2px;
     padding: 2px;
     border-style: inset;
     border-radius: 4px;
     border-width: 2px;
     border-color: #1C3045;
-    min-height: 20px;
+    min-height: 22px;
     text-align: left;
 }
 
 QPushButton:hover {
     background-color: #beccdd;
-    font: 13px;
+    font:bold 20px;
 }
 
 QPushButton:pressed {
@@ -127,7 +132,6 @@ QPushButton#delete_row {
 
 QPushButton#delete_row:hover {
     background-color: #b47a72;
-    font:bold 13px;
 }
 
 QPushButton#new_goods {
@@ -136,7 +140,6 @@ QPushButton#new_goods {
 
 QPushButton#new_goods:hover {
     background-color: #ccdddd;
-    font: 13px;
 }
 
 QPushButton#new_purchase {
@@ -145,7 +148,6 @@ QPushButton#new_purchase {
 
 QPushButton#new_purchase:hover {
     background-color: #daddcc;
-    font: 13px;
 }
 
 QPushButton#new_order {
@@ -154,7 +156,6 @@ QPushButton#new_order {
 
 QPushButton#new_order:hover {
     background-color: #d6ddcc;
-    font: 13px;
 }
 
 
