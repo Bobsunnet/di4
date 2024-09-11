@@ -190,3 +190,4 @@ di4/test.py
 di4/backupper.py
 /di4/settings/boot_config.txt
 /di4/settings/bampera.db
+/di4/settings/backups/
