@@ -14,6 +14,3 @@ class InvalidDataField(GeneralException):
 
 if __name__ == '__main__':
     err = InvalidDataField()
-    raise InvalidDataField
-
-

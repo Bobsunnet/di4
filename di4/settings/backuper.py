@@ -76,5 +76,3 @@ def write_backup():
 
 if __name__ == '__main__':
     write_backup()
-    print()
-    # print(os.listdir(os.getcwd()))

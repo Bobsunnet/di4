@@ -4,7 +4,7 @@ import datetime
 NOW_DATE = datetime.datetime.utcnow().date()
 TWO_MONTH_IN_DAYS = 60
 
-def get_former_date(days):
+def get_former_date(days:int):
     """returns date that was some period ago"""
     delta = datetime.timedelta(days)
     former_date = NOW_DATE-delta

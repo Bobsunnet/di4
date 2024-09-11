@@ -4,10 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="db8a78d0-5e6d-4089-8f79-f27ede870314" name="Changes" comment="beta 1.07. add_order method reworked">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/di4/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/di4/main.py" afterDir="false" />
-    </list>
+    <list default="true" id="db8a78d0-5e6d-4089-8f79-f27ede870314" name="Changes" comment="beta 1.07 delete_rows method rework" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -23,9 +20,24 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Bobsunnet&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Bobsunnet/di4.git&quot;,
+    &quot;accountId&quot;: &quot;c8f8b544-f9b0-4691-aecf-babcb88cbb11&quot;
+  }
+}</component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7
+}</component>
   <component name="ProjectId" id="2O142ScF0pRMdjBRACqSu1zloxi" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <ConfirmationsSetting value="1" id="Add" />
@@ -37,11 +49,13 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Python.main_root.executor": "Run",
+    "Python.querymaker.executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "db__issue__fix",
     "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "F:/pyProj/Study/AppUpdatingTest"
+    "last_opened_file_path": "F:/pyProj/Study/AppUpdatingTest",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
 }]]></component>
   <component name="RecentsManager">
@@ -49,7 +63,7 @@
       <recent name="F:\pyProj\di4" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.main_root">
+  <component name="RunManager" selected="Python.querymaker">
     <configuration name="GoodsNamesListUpdater" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="di4" />
       <option name="ENV_FILES" value="" />
@@ -162,13 +176,20 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.main_root" />
         <item itemvalue="Python.querymaker" />
+        <item itemvalue="Python.main_root" />
         <item itemvalue="Python.GoodsNamesListUpdater" />
         <item itemvalue="Python.main" />
         <item itemvalue="Python.test" />
       </list>
     </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-98f27166c754-ba05f1cad1b1-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-242.21829.153" />
+      </set>
+    </attachedChunks>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -245,7 +266,31 @@
       <option name="project" value="LOCAL" />
       <updated>1725979059362</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="beta 1.07 add_purhase method rework">
+      <option name="closed" value="true" />
+      <created>1725981689679</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1725981689679</updated>
+    </task>
+    <task id="LOCAL-00011" summary="beta 1.07 delete_rows method rework">
+      <option name="closed" value="true" />
+      <created>1726037921809</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1726037921809</updated>
+    </task>
+    <task id="LOCAL-00012" summary="beta 1.07 delete_rows method rework">
+      <option name="closed" value="true" />
+      <created>1726041777643</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1726041777643</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -289,21 +334,13 @@
     <MESSAGE value="beta_1.03.2 Исправления &#10;1. исправлен баг отображения стрелочек при сортировке&#10;2. так же исправлено отображение сообщений Exceptions (убран метод __str__)" />
     <MESSAGE value="beta_1.04. изменения для обновления комплитера и комбобокса через один класс GoodsNamesList" />
     <MESSAGE value="beta 1.07. add_order method reworked" />
-    <option name="LAST_COMMIT_MESSAGE" value="beta 1.07. add_order method reworked" />
+    <MESSAGE value="beta 1.07 add_purhase method rework" />
+    <MESSAGE value="beta 1.07 delete_rows method rework" />
+    <option name="LAST_COMMIT_MESSAGE" value="beta 1.07 delete_rows method rework" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/di4/settings/backuper.py</url>
-          <line>77</line>
-          <option name="timeStamp" value="3" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/main_root.py</url>
-          <line>10</line>
-          <option name="timeStamp" value="9" />
-        </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/di4/GoodsNamesListUpdater.py</url>
           <line>44</line>

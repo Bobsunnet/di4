@@ -54,7 +54,6 @@ class CurrentDataOperator:
     def __init__(self):
         self.cell_info = {}
         self.models_list: list = []
-        self.selected_rows_ids = None
         self.active_model_info = {'active_model': None}
         self.current_column = ColumnOperator('')
 
@@ -77,11 +76,3 @@ class CurrentDataOperator:
 
     def get_active_model(self):
         return self.active_model_info['active_model']
-
-
-def main():
-    pass
-
-
-if __name__ == '__main__':
-    main()

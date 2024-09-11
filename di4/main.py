@@ -2,16 +2,12 @@ import os
 import re
 import sys
 import logging
-from logging import raiseExceptions
 
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt, QSortFilterProxyModel, QModelIndex
 
 from di4 import dbConnector
 from di4.settings import sql_pyqt
-# from di4.settings.Constants import (BASE_TOTAL_PURCHASES, BASE_TOTAL_ORDERS, AVG_PROFIT_STAT_TEMPLATE,
-#                                     HEADERS_GOODS, HEADERS_PURCHASE, HEADERS_ORDERS,
-#                                     INIT_NOW_MONTH, INIT_TWO_MONTH_AGO, INIT_NOW_DAY)
 from di4.settings import Constants as const
 from di4.settings import MyExceptions
 from di4.settings.querymaker import QueryMaker, QueryMakerGroupBy, QueryMakerTemplate
@@ -22,7 +18,6 @@ from di4.MainGuiMixin import MainGuiMixin
 from di4.Utils import CurrentDataOperator
 from di4.GoodsNamesListUpdater import GoodsNamesList
 
-
 file_log = logging.FileHandler('logfile.log')
 console_log = logging.StreamHandler()
 
@@ -31,7 +26,6 @@ logging.basicConfig(handlers=(file_log, console_log),
                     level=logging.ERROR,
                     format='[%(levelname)s] ** %(asctime)s ** |%(filename)s|:{%(funcName)s} ** "%(message)s"',
                     datefmt='%Y-%m-%d %H:%M:%S')
-
 
 BASEDIR = os.path.dirname(__file__)
 ICONS_DIR = f'{BASEDIR}/static/icons/'
@@ -55,7 +49,7 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
         self.model_init(dbConnector.TABLE_GOODS, const.HEADERS_GOODS, 'model_goods')
         self.model_init(dbConnector.TABLE_PURCHASE, const.HEADERS_PURCHASE, 'model_purchase')
         self.model_init(dbConnector.TABLE_ORDERS, const.HEADERS_ORDERS, 'model_orders')
-        #todo срабатывает дважды из-за сигнала dataChanged и model editStrategy OnFieldChanged
+        # todo срабатывает дважды из-за сигнала dataChanged и model editStrategy OnFieldChanged
         self.model_goods.dataChanged.connect(GoodsNamesList().update_goods_names_list)
 
         self.table_view_setup_logic()
@@ -68,23 +62,23 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
 
     def tool_bar_setup(self):
         tool_bar = QtWidgets.QToolBar('Main toolbar')
-        tool_bar.setIconSize(QtCore.QSize(16,16))
+        tool_bar.setIconSize(QtCore.QSize(16, 16))
         self.addToolBar(tool_bar)
 
         self.act_debug = QtWidgets.QAction(QtGui.QIcon(f'{ICONS_DIR}bug.png'), 'debug', self)
         self.act_debug.triggered.connect(self.debug_action)
         self.act_add_many_purchases = QtWidgets.QAction('Кілька закупок')
-        #todo сделать отдельным потоком это действие
+        # todo сделать отдельным потоком это действие
         self.act_add_many_purchases.triggered.connect(self.btn_add_many_purchases_clicked)
 
         tool_bar.addAction(self.act_debug)
         tool_bar.addSeparator()
         tool_bar.addAction(self.act_add_many_purchases)
 
-    def model_init(self, table:str, headers:list, model_name:str):
+    def model_init(self, table: str, headers: list, model_name: str):
         """ Создает модель QSqlRelationalTableModel и добавляет в список моделей """
         model = sql_pyqt.QSqlRelationalTableModel(db=sql_pyqt.db)
-        model.setTable(table) # привязывает таблицу БД по названию
+        model.setTable(table)  # привязывает таблицу БД по названию
         model.setEditStrategy(sql_pyqt.QSqlTableModel.EditStrategy.OnFieldChange)
         model.sort(0, Qt.SortOrder.DescendingOrder)
         for i, name in enumerate(headers):
@@ -112,9 +106,9 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
             q_maker.set_name_like_filter('')
 
     def table_view_setup_logic(self):
-        self.create_table_view(getattr(self,'model_goods'), 'table_view_goods')
-        self.create_table_view(getattr(self,'model_purchase'), 'table_view_purchase')
-        self.create_table_view(getattr(self,'model_orders'), 'table_view_orders')
+        self.create_table_view(getattr(self, 'model_goods'), 'table_view_goods')
+        self.create_table_view(getattr(self, 'model_purchase'), 'table_view_purchase')
+        self.create_table_view(getattr(self, 'model_orders'), 'table_view_orders')
 
         self.table_view_stat.horizontalHeader().setSectionResizeMode(1)
         self.table_view_stat.horizontalHeader().sectionDoubleClicked.connect(self.col_header_double_clicked)
@@ -123,17 +117,14 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
         self.table_view_debug.horizontalHeader().sectionDoubleClicked.connect(self.col_header_double_clicked)
 
         self.table_view_goods.selectionModel().currentChanged.connect(self.cell_highlighted)
-        self.table_view_goods.selectionModel().selectionChanged.connect(self.items_selected)
         self.table_view_goods.horizontalHeader().setProperty('goods', True)
         self.table_view_goods.horizontalHeader().sectionDoubleClicked.connect(self.col_header_double_clicked)
 
         self.table_view_purchase.selectionModel().currentChanged.connect(self.cell_highlighted)
-        self.table_view_purchase.selectionModel().selectionChanged.connect(self.items_selected)
         self.table_view_purchase.horizontalHeader().setProperty('purchases', True)
         self.table_view_purchase.horizontalHeader().sectionDoubleClicked.connect(self.col_header_double_clicked)
 
         self.table_view_orders.selectionModel().currentChanged.connect(self.cell_highlighted)
-        self.table_view_orders.selectionModel().selectionChanged.connect(self.items_selected)
         self.table_view_orders.horizontalHeader().setProperty('orders', True)
         self.table_view_orders.horizontalHeader().sectionDoubleClicked.connect(self.col_header_double_clicked)
 
@@ -149,19 +140,19 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
         self.refresh_completer()
         self.lnedit_finder.returnPressed.connect(self.lnedit_finder_pressed)
 
-        self.btn_new_goods.setIcon(QtGui.QIcon(ICONS_DIR+'postal.png'))
+        self.btn_new_goods.setIcon(QtGui.QIcon(ICONS_DIR + 'postal.png'))
         self.btn_new_goods.clicked.connect(self.btn_new_goods_clicked)
 
-        self.btn_new_purchase.setIcon(QtGui.QIcon(ICONS_DIR+'purchasing.png'))
+        self.btn_new_purchase.setIcon(QtGui.QIcon(ICONS_DIR + 'purchasing.png'))
         self.btn_new_purchase.clicked.connect(self.btn_add_purchase_clicked)
 
-        self.btn_new_order.setIcon(QtGui.QIcon(ICONS_DIR+'selling.png'))
+        self.btn_new_order.setIcon(QtGui.QIcon(ICONS_DIR + 'selling.png'))
         self.btn_new_order.clicked.connect(self.btn_add_order_clicked)
 
-        self.btn_delete_row.setIcon(QtGui.QIcon(ICONS_DIR+'trash.png'))
+        self.btn_delete_row.setIcon(QtGui.QIcon(ICONS_DIR + 'trash.png'))
         self.btn_delete_row.clicked.connect(self.btn_delete_row_clicked)
 
-    # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ EDITING LAYER ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ EDITING LAYER ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
         self.btn_statistics_purchase.clicked.connect(self.btn_statistics_purchase_clicked)
         self.btn_statistics_order.clicked.connect(self.btn_statistics_order_clicked)
         self.btn_statistics_profit.clicked.connect(self.btn_statistics_profit_clicked)
@@ -174,52 +165,39 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
         ch_box = self.checkbox_date_filter
         ch_box.clicked.connect(lambda: ch_box.setText('On') if ch_box.isChecked() else ch_box.setText('Off'))
         ch_box.clicked.connect(
-            lambda: self.set_lnedit_date_filters_enable(True) if ch_box.isChecked() else self.set_lnedit_date_filters_enable(False))
+            lambda: self.set_lnedit_date_filters_enable(
+                True) if ch_box.isChecked() else self.set_lnedit_date_filters_enable(False))
         ch_box.clicked.connect(self.checkbox_filter_clicked)
 
         # ____________________________________ MODELS _________________________________
         self.model_purchase.setRelation(1, sql_pyqt.QSqlRelation("goods", 'id', 'name'))
         self.model_orders.setRelation(1, sql_pyqt.QSqlRelation("goods", 'id', 'name'))
 
-
-# _____________________________________ SIGNALS/ACTIONS ___________________________________________
+    # _____________________________________ SIGNALS/ACTIONS ___________________________________________
     def set_lnedit_date_filters_enable(self, isEnable):
         self.lnedit_date_start_filter.setEnabled(isEnable)
         self.lnedit_date_end_filter.setEnabled(isEnable)
 
     def debug_action(self):
         print('Debug info')
-        model = self.data_cash.models_list[1]
-        print(model.data(model.index(5, 0)))
 
-    def col_header_double_clicked(self, col:int):
+    def col_header_double_clicked(self, col: int):
         """Сортирует по двойному клику на колонке"""
         model = self.data_cash.get_active_model()
         self.sort_table_column(model, col)
 
-    def sort_table_column(self, model, col:int):
+    def sort_table_column(self, model, col: int):
         if self.data_cash.current_column.sorted_asc:
             model.sort(col, Qt.DescendingOrder)
         else:
             model.sort(col, Qt.AscendingOrder)
 
         self.data_cash.current_column.change_header_name(model, col)  # меняет имя хедера
-        self.data_cash.current_column.change_sorted_status(model, col) # меняет статус отсортированности
-
+        self.data_cash.current_column.change_sorted_status(model, col)  # меняет статус отсортированности
 
     def set_active_model(self):
         active_model = self.tab_widget.currentWidget().model()
         self.data_cash.set_active_model(active_model)
-
-    def debug_selection_test(self):
-        pass
-
-    def items_selected(self):
-        table = self.tab_widget.currentWidget()
-        selected_rows = table.selectionModel().selectedRows()
-        model = table.model()
-        rows_ids = (model.index(i.row(), 0).data() for i in selected_rows)
-        self.data_cash.selected_rows_ids = rows_ids
 
     def date_filter_pressed(self):
         self.date_filter_activate()
@@ -314,16 +292,11 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
 
     # ______________________________________ DELETING ___________________________________________
     def btn_delete_row_clicked(self):
-        current_table_index = self.tab_widget.currentIndex()
-
         try:
-            rows_ids = list(self.data_cash.selected_rows_ids)
-            if current_table_index > 2:
+            if self.tab_widget.currentIndex() > 2:
                 raise MyExceptions.GeneralException('Видаляти можна тільки в перших трьох таблицях!\n'
                                                     'Це таблиця Статистики!')
-            if not rows_ids:
-                raise MyExceptions.GeneralException('Спочатку оберіть рядок для видалення(натисніть на номер рядка зліва)')
-            self.delete_many_rows(rows_ids, current_table_index)
+            self.delete_many_rows()
 
         except Exception as ex:
             self.draw_error_message('Шось не то =(', exception=ex)
@@ -331,33 +304,34 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
 
         self.data_cash.reset_cell_info()
 
-    def delete_many_rows(self, rows_ids, table_index):
-        if table_index != 0:
-            goods_ids_query = f'''SELECT goods_id, COUNT(goods_id)
-                                  FROM {TABLE_NAMES_LIST[table_index]} 
-                                  WHERE id IN ({", ".join(list(map(str, rows_ids)))})
-                                  GROUP BY goods_id'''
-            goods_ids = dbConnector.general_execution(goods_ids_query)
+    def delete_many_rows(self):
+        is_orders_model: bool = self.tab_widget.currentIndex() == const.MODEL_ORDERS
+        table_view: QtWidgets.QTableView = self.tab_widget.currentWidget()
+        indexes = table_view.selectionModel().selectedRows()
+        rows = [index.row() for index in indexes]
+        if not rows:
+            raise MyExceptions.GeneralException('Спочатку оберіть рядок для видалення(натисніть на номер рядка зліва)')
 
-            if table_index == 1:
-                for row in goods_ids:
-                    dbConnector.update_goods_amount(row[0], -row[1])
-            elif table_index == 2:
-                for row in goods_ids:
-                    dbConnector.update_goods_amount(row[0], row[1])
+        self.delete_rows(table_view.model(), rows, is_orders_model)
+        self.refresh_table(self.tab_widget.currentIndex())
 
-        rows_ids_iter = ((_id,) for _id in rows_ids)
-        res = dbConnector.many_execution(f'''DELETE FROM {TABLE_NAMES_LIST[table_index]} WHERE id = ?''', rows_ids_iter)
-        if res:
-            match res[0]:
-                case 'integrity_error':
-                    self.draw_error_message('Не можна видаляти, поки є посилання на цей обьєкт в інших таблицях', res)
-                case 'general_error':
-                    self.draw_error_message('Сталася якась помилка', res)
-        self.refresh_table(table_index)
+    def delete_rows(self, model: sql_pyqt.QSqlTableModel | sql_pyqt.QSqlRelationalTableModel, rows: list,
+                    is_orders_model: bool = False):
+        if not is_orders_model:
+            for row in rows:
+                model.removeRow(row)
+
+        else:
+            for row in rows:
+                name = model.record(row).value(1)
+                self.update_goods_amount(name, 1)
+                model.removeRow(row)
+
+        model.submitAll()
+        model.select()
 
     # __________________________________ SLOTS _____________________________________________
-    def rename_tab(self, index:int, name:str):
+    def rename_tab(self, index: int, name: str):
         self.tab_widget.setTabText(index, name)
 
     def get_active_tab_index(self):
@@ -420,7 +394,12 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
     # __________________________________ LOGIC _______________________________________
     # _______________________________ ADD GOODS ________________________________________
     def action_add_new_goods(self):
-        dbConnector.insert_into_goods()
+        model: sql_pyqt.QSqlTableModel = self.data_cash.models_list[const.MODEL_GOODS]
+        row = model.rowCount()
+        model.insertRow(row)
+        model.setData(model.index(row, 1), '')
+        model.setData(model.index(row, 2), 0)
+        model.submitAll()
 
     # _________________________________ DB OPERATIONS ______________________________
     def insert_operation(self,
@@ -462,13 +441,13 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
     def action_add_many_purchases(self):
         """Добавляет несколько записей в таблицу покупок"""
         try:
-            name, price,amount,date = self.window_add_many_purchases.get_input_fields_data()
+            name, price, amount, date = self.window_add_many_purchases.get_input_fields_data()
             if amount > 100:
                 self.draw_error_message('Можна додавати не більше 100 штук за раз')
             else:
                 goods_id = self.get_goods_id(name)
                 if goods_id:
-                    self.add_purchase(goods_id,amount,price,date)
+                    self.add_purchase(goods_id, amount, price, date)
         except MyExceptions.InvalidDataField as ex:
             self.draw_error_message('Невірно вказані дані', ex)
             logging.error(ex)
@@ -487,21 +466,24 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
     def add_orders(self, goods_id: int, amount: int = 1, price: int | float = 0, date=const.INIT_NOW_DAY):
         model = self.data_cash.models_list[const.MODEL_ORDERS]
         self.insert_operation(model, goods_id, amount, price, date)
-        self.update_goods_amount(goods_id, amount)
+        self.update_goods_amount(goods_id, -amount)
         self.tab_widget.setCurrentIndex(const.MODEL_ORDERS)
 
-    def update_goods_amount(self, goods_id:int, amount:int):
+    def update_goods_amount(self, goods_name_id: int | str, amount: int):
         model: sql_pyqt.QSqlRelationalTableModel = self.data_cash.models_list[const.MODEL_GOODS]
-        goods_index: list[QModelIndex] = model.match(model.index(0, 0),
-                                                                 Qt.DisplayRole,
-                                                                 goods_id,
-                                                                 hits=1,
-                                                                 flags=Qt.MatchExactly)
-        if goods_index == -1:
+
+        search_col = 0 if isinstance(goods_name_id, int) else 1
+
+        goods_index: list[QModelIndex] = model.match(model.index(0, search_col),
+                                                                      Qt.DisplayRole,
+                                                                      goods_name_id,
+                                                                      hits=1,
+                                                                      flags=Qt.MatchExactly)
+        if not goods_index:
             raise MyExceptions.InvalidDataField("Невірний id товару")
 
-        row:int = goods_index[0].row()
-        amount = model.data(model.index(row,2)) - amount
+        row: int = goods_index[0].row()
+        amount = model.data(model.index(row, 2)) + amount
         model.setData(model.index(row, 2), amount)
         model.submitAll()
 
@@ -536,7 +518,7 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
             logging.error(ex)
 
     def get_row_id(self):
-        #todo херово написанный метод. не гибкий!!
+        # todo херово написанный метод. не гибкий!!
         """ Возвращает индекс поля БД выделенной ячейки таблицы"""
         if self.get_active_cell_index():
             try:
@@ -555,7 +537,7 @@ class MainWindow(MainGuiMixin, QtWidgets.QMainWindow):
         text_safe = re.sub(r'\";+', '', text.strip())
         return text_safe
 
-    def draw_error_message(self, error_text, exception:Exception='Undefined'):
+    def draw_error_message(self, error_text, exception: Exception = 'Undefined'):
         msg = QtWidgets.QMessageBox()
         msg.setWindowTitle('Щось пішло не так =(')
         msg.setText(error_text)
@@ -574,5 +556,3 @@ if __name__ == '__main__':
     mainWindow.show()
 
     sys.exit(app.exec_())
-
-
